@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+
+body {
+  font-size: 16px;
+  color: #000;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+}
+
+nav,
+div,
+section,
+article,
+input,
+textarea,
+img,
+video {
+  box-sizing: border-box;
+}

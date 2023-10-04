@@ -4,12 +4,12 @@ const Dotenv = require('dotenv-webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  name: 'tikitaka',
+  name: 'react',
   // mode: 'development', // development production
   devtool: 'hidden-source-map', // eval hidden-source-map
   resolve: {
-    extensions: ['.js', '.jsx'],
-    // extensions: [".js", ".jsx", ".ts", ".tsx"],
+    // extensions: ['.js', '.jsx'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
 
   entry: {
@@ -39,10 +39,23 @@ module.exports = {
           // plugins: ['react-refresh/babel'], // 바벨이 동작할 때 hot 리로딩 기능(react-refresh)을 추가해줌
         },
       },
+      // ts loader 설정
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
       // css loader 설정
       {
-        test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        test: /\.s[ac]ss$/i,
+        use: [
+          // Creates `style` nodes from JS strings
+          'style-loader',
+          // Translates CSS into CommonJS
+          'css-loader',
+          // Compiles Sass to CSS
+          'sass-loader',
+        ],
       },
       // image loader 설정 (webpack 5)
       {
