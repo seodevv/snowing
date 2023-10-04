@@ -1,2 +1,1 @@
-# react-tempalte
-"# ts-template" 
+# ts-template
