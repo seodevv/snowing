@@ -1,11 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
+import { Provider } from 'react-redux';
+import store from './app/store';
 
 const start = (): void => {
   ReactDOM.render(
     <>
-      <App />
+      <Provider store={store}>
+        <App />
+      </Provider>
     </>,
     document.querySelector('#root')
   );
