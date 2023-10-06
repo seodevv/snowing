@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FlexBox, FlexGrowBox } from '../components/Styled';
+import { Box, Container, FlexBox } from '../components/Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCartShopping,
@@ -25,7 +25,7 @@ const MainLogo = styled.span`
   cursor: pointer;
 `;
 
-const Menus = styled(FlexGrowBox)`
+const Menus = styled(Box)`
   font-size: 0.95rem;
   text-align: center;
   cursor: pointer;
@@ -73,7 +73,14 @@ const Navbar = (): JSX.Element => {
   ];
   return (
     <>
-      <nav>
+      <Container
+        posit="fixed"
+        top="0"
+        left="0"
+        bg="#fff"
+        wid="100%"
+        zIndex={9999}
+      >
         <HeaderInfo>{info_string}</HeaderInfo>
         <FlexBox
           ma="0 15px"
@@ -96,7 +103,7 @@ const Navbar = (): JSX.Element => {
             <FontAwesomeIcon icon={faCartShopping} size="xl" />
           </Icons>
         </FlexBox>
-      </nav>
+      </Container>
     </>
   );
 };

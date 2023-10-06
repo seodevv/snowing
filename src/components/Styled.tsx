@@ -11,13 +11,24 @@ interface GlobalProps {
   pr?: string;
   pb?: string;
   pl?: string;
-  posit?: string;
+  posit?: 'relative' | 'absolute' | 'fixed' | 'sticky';
   top?: string;
   right?: string;
   bottom?: string;
   left?: string;
   zIndex?: number;
-  dis?: string;
+  dis?: 'block' | 'inline-block' | 'inline' | 'table' | 'flex';
+  flexDir?: 'row' | 'column';
+  flexWrap?: 'wrap' | 'nowrap';
+  flexJustCon?:
+    | 'flex-start'
+    | 'flex-end'
+    | 'center'
+    | 'baseline'
+    | 'space-arround'
+    | 'space-between';
+  flexAlignItem?: string;
+  flexGrow?: number;
   wid?: string;
   minWid?: string;
   maxWid?: string;
@@ -41,6 +52,10 @@ interface GlobalProps {
   ftSize?: string;
   ftWeight?: string;
   ftStyle?: string;
+  textAlign?: string;
+  objFit?: string;
+  objPosit?: string;
+  overflow?: 'hidden' | 'scroll';
 }
 
 interface FlexProps {
@@ -72,6 +87,11 @@ const GlobalStyle = css<GlobalProps>`
   left: ${({ left }) => left};
   z-index: ${({ zIndex }) => zIndex};
   display: ${({ dis }) => dis};
+  flex-direction: ${({ flexDir }) => flexDir};
+  flex-wrap: ${({ flexWrap }) => flexWrap};
+  justify-content: ${({ flexJustCon }) => flexJustCon};
+  align-items: ${({ flexAlignItem }) => flexAlignItem};
+  flex-grow: ${({ flexGrow }) => flexGrow};
   width: ${({ wid }) => wid};
   min-width: ${({ minWid }) => minWid};
   max-width: ${({ maxWid }) => maxWid};
@@ -91,19 +111,29 @@ const GlobalStyle = css<GlobalProps>`
   border-bottom-right-radius: ${({ brBR }) => brBR};
   border-bottom-left-radius: ${({ brBL }) => brBL};
   border-top-left-radius: ${({ brTL }) => brTL};
+  font-family: ${({ ftFamily }) => ftFamily};
+  font-size: ${({ ftSize }) => ftSize};
+  font-weight: ${({ ftWeight }) => ftWeight};
+  font-style: ${({ ftStyle }) => ftStyle};
+  text-align: ${({ textAlign }) => textAlign};
+  object-fit: ${({ objFit }) => objFit};
+  object-position: ${({ objPosit }) => objPosit};
+  overflow: ${({ overflow }) => overflow};
 `;
 
-export const FlexBox = styled.div<FlexProps>`
-  margin: ${(props) => props.ma};
-  padding: ${(props) => props.pa};
+export const Container = styled.section`
+  ${GlobalStyle}
+`;
+
+export const Box = styled.div`
+  ${GlobalStyle}
+`;
+
+export const FlexBox = styled.div`
+  ${GlobalStyle}
   display: flex;
-  flex-direction: ${(props) => props.flexDir};
-  flex-wrap: ${(props) => props.flexWrap};
-  justify-content: ${(props) => props.flexJustCon};
-  align-items: ${(props) => props.flexAlignItem};
-  color: ${(props) => props.color};
 `;
 
-export const FlexGrowBox = styled.div<FlexProps>`
-  flex-grow: ${(props) => props.flexGrow};
+export const Img = styled.img`
+  ${GlobalStyle}
 `;
