@@ -31,3 +31,13 @@ img,
 video {
   box-sizing: border-box;
 }
+
+.btn-effect {
+  &:hover {
+    opacity: 0.5;
+  }
+
+  &:active {
+    opacity: 0.75;
+  }
+}
