@@ -1,9 +1,18 @@
 import React from 'react';
-import { Box, Container, FlexBox, Img } from '../../components/Styled';
+import { Box, Container } from '../../components/Styled';
 import styled from 'styled-components';
 import MainBg from './MainBg';
 import Header from './Header';
 import ProductSlider from './ProductSlider';
+import {
+  initialProductList,
+  initialProductSubject,
+  initialProductType,
+  useGetMainProductsQuery,
+  useGetNewProductsQuery,
+  useGetTypeQuery,
+} from '../../app/apiSlice';
+import Changer from './Changer';
 
 const StyledBox = styled(Box)`
   margin-top: 30vh;
@@ -38,6 +47,33 @@ const StyledBox = styled(Box)`
 `;
 
 const MainPage = (): JSX.Element => {
+  const {
+    data: newArrivials = {
+      data: initialProductList,
+    },
+    isLoading: newIsLoad,
+    isSuccess: newIsSuc,
+    isError: newIsErr,
+  } = useGetNewProductsQuery();
+  const {
+    data: type = {
+      data: [initialProductType],
+    },
+    isLoading: typeIsLoad,
+    isSuccess: typeIsSuc,
+    isError: typeIsErr,
+  } = useGetTypeQuery();
+  const {
+    data: mainArrivials = {
+      data: {
+        subject: initialProductSubject,
+        list: initialProductList,
+      },
+    },
+    isLoading: mainIsLoad,
+    isSuccess: mainIsSuc,
+    isError: mainIsErr,
+  } = useGetMainProductsQuery();
   return (
     <>
       <MainBg />
@@ -54,7 +90,43 @@ const MainPage = (): JSX.Element => {
         </Box>
         <Box pa="25px" bg="#fff">
           <Header text="new arrivials" />
-          <ProductSlider />
+          <ProductSlider
+            items={newArrivials.data}
+            isLoading={newIsLoad}
+            isSuccess={newIsSuc}
+            isError={newIsErr}
+          />
+        </Box>
+        <Box pa="25px" bg="#000">
+          <Changer
+            items={type.data}
+            isLoading={typeIsLoad}
+            isSuccess={typeIsSuc}
+            isError={typeIsErr}
+          />
+        </Box>
+        <Box pa="25px" bg="#fff">
+          <Header text="Jacket new arrivials" />
+          <ProductSlider
+            items={mainArrivials.data.list}
+            isLoading={mainIsLoad}
+            isSuccess={mainIsSuc}
+            isError={mainIsErr}
+          />
+        </Box>
+        <Box pa="25px" bg="#808080">
+          <Changer
+            items={[
+              {
+                id: mainArrivials.data.subject.id,
+                type: mainArrivials.data.subject.subject,
+                image: mainArrivials.data.subject.image,
+              },
+            ]}
+            isLoading={mainIsLoad}
+            isSuccess={mainIsSuc}
+            isError={mainIsErr}
+          />
         </Box>
       </Container>
     </>
