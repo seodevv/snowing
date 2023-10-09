@@ -8,6 +8,18 @@ body {
   color: #000;
 }
 
+body::-webkit-scrollbar {
+  width: 13px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #becada;
+}
+
+body::-webkit-scrollbar-track-piece {
+  background: #000;
+}
+
 h1,
 h2,
 h3,

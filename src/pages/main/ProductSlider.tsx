@@ -1,12 +1,17 @@
 import React, { useLayoutEffect, useState } from 'react';
-import { FlexBox } from '../../components/Styled';
+import { Box, FlexBox } from '../../components/Styled';
 import styled from 'styled-components';
-import { ProductList, ProductListResponse } from '../../app/apiSlice';
+import {
+  ProductList,
+  ProductListResponse,
+  useGetProductsListQuery,
+} from '../../app/apiSlice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronLeft,
   faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
+import Header from './Header';
 
 const Items = styled(FlexBox)`
   position: relative;
@@ -175,20 +180,46 @@ const ProductView = ({
 };
 
 interface ProductSliderProps {
-  items: ProductList[];
-  isLoading: boolean;
-  isSuccess: boolean;
-  isError: boolean;
+  type: string;
+  text: string;
+  pa?: string;
+  bg?: string;
 }
 
 const ProductSlider = ({
-  items,
-  isLoading,
-  isSuccess,
-  isError,
+  type,
+  text,
+  pa = '25px',
+  bg = '#fff',
 }: ProductSliderProps): JSX.Element => {
-  const [products, setProducts] = useState<ProductList[] | undefined>(
-    undefined
+  const initialProductList: ProductListResponse = {
+    data: Array(4)
+      .fill(undefined)
+      .map((_, i) => ({
+        id: i,
+        name: 'Loading Product',
+        image: 'LOADING.png',
+        price: 999999,
+      })),
+  };
+  const {
+    data: getList = initialProductList,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useGetProductsListQuery({
+    type,
+  });
+
+  const [products, setProducts] = useState<ProductList[]>(
+    Array(4)
+      .fill(undefined)
+      .map((_, i) => ({
+        id: i,
+        name: 'Loading Product',
+        image: 'LOADING.png',
+        price: 999999,
+      }))
   );
   const [current, setCurrent] = useState<number>(-1);
 
@@ -213,11 +244,11 @@ const ProductSlider = ({
   };
 
   useLayoutEffect(() => {
-    if (isLoading) {
-      setProducts(items); // initialState
-    } else if (isSuccess) {
-      setProducts(items); // realState
-      setCurrent(items.length <= 4 ? -1 : parseInt(items.length / 2 + ''));
+    if (isSuccess) {
+      setProducts(getList.data); // realState
+      setCurrent(
+        getList.data.length <= 4 ? -1 : parseInt(getList.data.length / 2 + '')
+      );
     } else if (isError) {
       setProducts(
         // errorState
@@ -231,40 +262,43 @@ const ProductSlider = ({
           }))
       );
     }
-  }, [isLoading, isSuccess, isError]);
+  }, [isSuccess, isError]);
 
   return (
     <>
-      <FlexBox wid="100%" flexDir="row" flexWrap="nowrap" overflow="hidden">
-        <Items>
-          {products?.map((item) => (
-            <ProductView
-              key={item.id}
-              name={item.name}
-              image={item.image}
-              price={item.price}
-              current={current}
-              isLoading={isLoading}
-            />
-          ))}
-          {current !== -1 && (
-            <>
-              <FontAwesomeIcon
-                className="left btn-effect"
-                icon={faChevronLeft}
-                size="xl"
-                onClick={() => currentChangeAction('left')}
+      <Box pa={pa} bg={bg}>
+        <Header text={text} />
+        <FlexBox wid="100%" flexDir="row" flexWrap="nowrap" overflow="hidden">
+          <Items>
+            {products.map((item) => (
+              <ProductView
+                key={item.id}
+                name={item.name}
+                image={item.image}
+                price={item.price}
+                current={current}
+                isLoading={isLoading}
               />
-              <FontAwesomeIcon
-                className="right btn-effect"
-                icon={faChevronRight}
-                size="xl"
-                onClick={() => currentChangeAction('right')}
-              />
-            </>
-          )}
-        </Items>
-      </FlexBox>
+            ))}
+            {current !== -1 && (
+              <>
+                <FontAwesomeIcon
+                  className="left btn-effect"
+                  icon={faChevronLeft}
+                  size="xl"
+                  onClick={() => currentChangeAction('left')}
+                />
+                <FontAwesomeIcon
+                  className="right btn-effect"
+                  icon={faChevronRight}
+                  size="xl"
+                  onClick={() => currentChangeAction('right')}
+                />
+              </>
+            )}
+          </Items>
+        </FlexBox>
+      </Box>
     </>
   );
 };
