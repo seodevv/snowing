@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import MainBg from './MainBg';
 import ProductSlider from './ProductSlider';
 import ProductBanner from './ProductBanner';
+import ProductSubject from './ProductSubject';
+import InstaFeeds from './InstaFeeds';
 
 const StyledBox = styled(Box)`
   margin-top: 30vh;
@@ -57,6 +59,8 @@ const MainPage = (): JSX.Element => {
         <ProductSlider type="main" text="jacket new arrivials" />
         <ProductBanner type="subject" main bg="#828282" />
         <ProductSlider type="popular" text="most popular" />
+        <ProductSubject />
+        <InstaFeeds />
       </Container>
     </>
   );

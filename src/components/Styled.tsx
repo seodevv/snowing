@@ -17,7 +17,7 @@ interface GlobalProps {
   bottom?: string;
   left?: string;
   zIndex?: number;
-  dis?: 'block' | 'inline-block' | 'inline' | 'table' | 'flex';
+  dis?: 'block' | 'inline-block' | 'inline' | 'table' | 'flex' | 'grid';
   flexDir?: 'row' | 'column';
   flexWrap?: 'wrap' | 'nowrap';
   flexJustCon?:
@@ -56,17 +56,6 @@ interface GlobalProps {
   objFit?: string;
   objPosit?: string;
   overflow?: 'hidden' | 'scroll';
-}
-
-interface FlexProps {
-  ma?: string;
-  pa?: string;
-  flexDir?: string;
-  flexWrap?: string;
-  flexJustCon?: string;
-  flexAlignItem?: string;
-  flexGrow?: number;
-  color?: string;
 }
 
 const GlobalStyle = css<GlobalProps>`
@@ -132,6 +121,11 @@ export const Box = styled.div`
 export const FlexBox = styled.div`
   ${GlobalStyle}
   display: flex;
+`;
+
+export const GridBox = styled.div`
+  ${GlobalStyle}
+  display: grid;
 `;
 
 export const Img = styled.img`
