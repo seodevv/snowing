@@ -35,6 +35,16 @@ export interface ProductList {
   sell?: number;
 }
 
+export interface InstaFeeds {
+  id: number | string;
+  media_type: string;
+  media_url: string;
+  thumbnail_url?: string;
+  permalink: string;
+  username: string;
+  caption: string;
+}
+
 export interface ProductTypeResponse extends MessageResponse {
   data: ProductType[];
 }
@@ -49,6 +59,13 @@ export interface ProductListResponse extends MessageResponse {
 
 export interface bannerResponse extends MessageResponse {
   data: ProductType[] | ProductSubject[];
+}
+
+export interface InstaFeedsResponse extends MessageResponse {
+  data: {
+    feeds: InstaFeeds[];
+    isEnd: boolean;
+  };
 }
 
 export const apiSlice = createApi({
@@ -85,6 +102,9 @@ export const apiSlice = createApi({
     getBanner: builder.query<bannerResponse, { type: string }>({
       query: ({ type }) => `/get/product/banner?type=${type}`,
     }),
+    getInstaFeed: builder.query<InstaFeedsResponse, number>({
+      query: (page) => `/get/insta/feeds?page=${page}`,
+    }),
   }),
 });
 
@@ -93,4 +113,5 @@ export const {
   useGetProductSubjectQuery,
   useGetProductsListQuery,
   useGetBannerQuery,
+  useGetInstaFeedQuery,
 } = apiSlice;

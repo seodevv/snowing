@@ -192,18 +192,8 @@ const ProductSlider = ({
   pa = '25px',
   bg = '#fff',
 }: ProductSliderProps): JSX.Element => {
-  const initialProductList: ProductListResponse = {
-    data: Array(4)
-      .fill(undefined)
-      .map((_, i) => ({
-        id: i,
-        name: 'Loading Product',
-        image: 'LOADING.png',
-        price: 999999,
-      })),
-  };
   const {
-    data: getList = initialProductList,
+    data: getList,
     isLoading,
     isSuccess,
     isError,
