@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSquareInstagram } from '@fortawesome/free-brands-svg-icons';
 import { faImages } from '@fortawesome/free-regular-svg-icons';
 import { faClapperboard } from '@fortawesome/free-solid-svg-icons';
+import { useDispatch } from 'react-redux';
+import { showFeed } from '../../app/slice';
 
 const HeaderBox = styled(Box)`
   padding: 50px 0 25px;
@@ -75,7 +77,7 @@ const HeaderBox = styled(Box)`
 `;
 
 const InstaFeedsBox = styled(GridBox)`
-  grid-auto-rows: repeat(6, 1fr);
+  grid-auto-rows: 1fr;
   grid-template-columns: repeat(6, 1fr);
 
   .item {
@@ -102,7 +104,6 @@ const InstaFeedsBox = styled(GridBox)`
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.5);
   }
 
   .type {
@@ -190,6 +191,7 @@ const InstaFeeds = (): JSX.Element => {
       permalink: '/',
       username: 'snowing',
       caption: 'Loading',
+      timestamp: new Date().toISOString(),
     }));
   const [page, setPage] = useState<number>(0);
   const [feeds, setFeeds] = useState<InstaFeeds[]>(initialState);
@@ -197,11 +199,11 @@ const InstaFeeds = (): JSX.Element => {
 
   const {
     data: getFeeds,
-    isLoading,
     isSuccess,
     isFetching,
     isError,
   } = useGetInstaFeedQuery(page);
+  const dispatch = useDispatch();
 
   const desc =
     "Snowboard clothing brand 'Snowing' is a brand that provides modern and stylish snowboard clothing and is famous for its products that perform excellently even in snow and cold temperatures. Snowing combines design and technological innovation to create products suitable for anyone with a passion for snow sports.";
@@ -221,12 +223,11 @@ const InstaFeeds = (): JSX.Element => {
             permalink: '/',
             username: 'snowing',
             caption: 'Sorry, Network Error. please try again',
+            timestamp: new Date().toISOString(),
           }))
       );
     }
   }, [isSuccess, isFetching, isError]);
-
-  console.log(getFeeds, isLoading, isSuccess, isFetching, isError);
 
   return (
     <>
@@ -255,14 +256,19 @@ const InstaFeeds = (): JSX.Element => {
         <InstaFeedsBox>
           {feeds.map((feed, i) => {
             const isBig = i % 6 === 0 ? `big` : '';
-            const isImage = feed.media_type.toLocaleLowerCase() === 'image';
-            if (i >= 24) return;
+            const isImage =
+              feed.media_type === 'IMAGE' ||
+              feed.media_type === 'CAROUSEL_ALBUM';
             return (
               <div
                 key={feed.id}
                 className={`item ${isBig} ${
                   feed.caption === 'Loading' && 'loading'
                 }`}
+                onClick={() => {
+                  if (feed.caption === 'Loading') return;
+                  dispatch(showFeed(feed));
+                }}
               >
                 <img
                   className="image"

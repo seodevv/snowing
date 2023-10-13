@@ -52,10 +52,12 @@ interface GlobalProps {
   ftSize?: string;
   ftWeight?: string;
   ftStyle?: string;
+  color?: string;
   textAlign?: string;
   objFit?: string;
   objPosit?: string;
   overflow?: 'hidden' | 'scroll';
+  transform?: string;
 }
 
 const GlobalStyle = css<GlobalProps>`
@@ -104,10 +106,12 @@ const GlobalStyle = css<GlobalProps>`
   font-size: ${({ ftSize }) => ftSize};
   font-weight: ${({ ftWeight }) => ftWeight};
   font-style: ${({ ftStyle }) => ftStyle};
+  color: ${({ color }) => color};
   text-align: ${({ textAlign }) => textAlign};
   object-fit: ${({ objFit }) => objFit};
   object-position: ${({ objPosit }) => objPosit};
   overflow: ${({ overflow }) => overflow};
+  transform: ${({ transform }) => transform};
 `;
 
 export const Container = styled.section`

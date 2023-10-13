@@ -9,7 +9,7 @@ body {
 }
 
 body::-webkit-scrollbar {
-  width: 13px;
+  width: 15px;
 }
 
 body::-webkit-scrollbar-thumb {
@@ -45,11 +45,27 @@ video {
 }
 
 .btn-effect {
-  &:hover {
+  &:hover:enabled {
     opacity: 0.5;
   }
 
-  &:active {
+  &:active:enabled {
     opacity: 0.75;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  100% {
+    visibility: visible;
+    opacity: 1;
   }
 }

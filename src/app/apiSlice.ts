@@ -43,6 +43,7 @@ export interface InstaFeeds {
   permalink: string;
   username: string;
   caption: string;
+  timestamp: string;
 }
 
 export interface ProductTypeResponse extends MessageResponse {
