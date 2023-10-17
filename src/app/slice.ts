@@ -1,13 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { InstaFeeds } from './apiSlice';
+import { InstaFeeds, User } from './apiSlice';
 import { RootState } from './store';
 
 export interface commonState {
+  selector: 'main';
+  secret: string;
+  user: User | null;
   feed: { flag: boolean } & InstaFeeds;
   newsletter: { flag: boolean; email: string };
+  signup: { flag: boolean; isSign: boolean };
 }
 
 export const initialCommonState: commonState = {
+  selector: 'main',
+  secret: '',
+  user: null,
   feed: {
     flag: false,
     id: -1,
@@ -22,45 +29,88 @@ export const initialCommonState: commonState = {
     flag: false,
     email: '',
   },
+  signup: {
+    flag: false,
+    isSign: false,
+  },
+};
+
+export const bodyScrollDisableHandler = (type: boolean) => {
+  const body = document.querySelector('body') as HTMLBodyElement;
+  if (type) {
+    body.style.overflow = 'hidden';
+  } else {
+    body.style.overflow = 'unset';
+  }
 };
 
 const slice = createSlice({
   name: 'common',
   initialState: initialCommonState,
   reducers: {
+    setSelector: (state, action: { payload: commonState['selector'] }) => {
+      state.selector = action.payload;
+    },
+    setSecret: (state, action: { payload: commonState['secret'] }) => {
+      state.secret = action.payload;
+    },
+    setUser: (state, action: { payload: User | boolean }) => {
+      if (typeof action.payload === 'boolean') {
+        state.user = null;
+      } else {
+        state.user = action.payload;
+      }
+    },
     showFeed: (state, action: { payload: InstaFeeds }) => {
-      const body = document.querySelector('body') as HTMLBodyElement;
-      body.style.overflow = 'hidden';
+      bodyScrollDisableHandler(true);
       state.feed = {
         flag: true,
         ...action.payload,
       };
     },
     closeFeed: (state, action: {}) => {
-      const body = document.querySelector('body') as HTMLBodyElement;
-      body.style.overflow = 'unset';
+      bodyScrollDisableHandler(false);
       state.feed = initialCommonState.feed;
     },
     showNewsletter: (state, action: { payload: string }) => {
-      const body = document.querySelector('body') as HTMLBodyElement;
-      body.style.overflow = 'hidden';
+      bodyScrollDisableHandler(true);
       state.newsletter = {
         flag: true,
         email: action.payload,
       };
     },
     closeNewsletter: (state, action: {}) => {
-      const body = document.querySelector('body') as HTMLBodyElement;
-      body.style.overflow = 'unset';
+      bodyScrollDisableHandler(false);
       state.newsletter = initialCommonState.newsletter;
+    },
+    showSignup: (state, action: {}) => {
+      bodyScrollDisableHandler(true);
+      state.signup.flag = true;
+    },
+    closeSignup: (state, action: {}) => {
+      bodyScrollDisableHandler(false);
+      state.signup = initialCommonState.signup;
     },
   },
 });
 
 const reducer = slice.reducer;
 export default reducer;
-export const { showFeed, closeFeed, showNewsletter, closeNewsletter } =
-  slice.actions;
+export const {
+  setUser,
+  setSelector,
+  setSecret,
+  showFeed,
+  closeFeed,
+  showNewsletter,
+  closeNewsletter,
+  showSignup,
+  closeSignup,
+} = slice.actions;
 export const selectCommon = (state: RootState) => state.common;
+export const selectUser = (state: RootState) => state.common.user;
+export const selectSelector = (state: RootState) => state.common.selector;
+export const selectSecret = (state: RootState) => state.common.secret;
 export const selectFeed = (state: RootState) => state.common.feed;
 export const selectNewsletter = (state: RootState) => state.common.newsletter;
+export const selectSignup = (state: RootState) => state.common.signup;

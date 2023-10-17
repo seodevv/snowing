@@ -8,6 +8,7 @@ interface Style {
 }
 
 interface ProfileProps {
+  src?: string;
   alt?: string;
   className?: string;
   style?: Style;
@@ -23,22 +24,32 @@ const ProfileBox = styled(Box)`
     margin-top: 10%;
     object-fit: cover;
   }
+
+  .profile {
+    margin: unset;
+    transform: unset;
+  }
 `;
 
 const Profile = ({
+  src,
   alt = 'image',
   className,
   style,
   onClick,
   size = '45px',
 }: ProfileProps): JSX.Element => {
+  const profileSrc =
+    src?.search(/^http?s/) !== -1
+      ? src
+      : `${process.env.REACT_APP_SERVER_URL}/profile/${src}`;
   return (
     <>
       <ProfileBox wid={size} hei={size} overflow="hidden">
         <Img
           className={className}
           style={style}
-          src={mainImg}
+          src={src ? profileSrc : mainImg}
           alt={alt}
           onClick={onClick}
           wid="100%"
