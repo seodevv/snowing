@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 
-interface GlobalProps {
+export interface GlobalProps {
   ma?: string;
   mt?: string;
   mr?: string;

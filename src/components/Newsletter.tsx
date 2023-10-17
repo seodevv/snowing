@@ -4,6 +4,7 @@ import { Box } from './Styled';
 import styled from 'styled-components';
 import { useDispatch } from 'react-redux';
 import { closeNewsletter } from '../app/slice';
+import { usePostSubscribeMutation } from '../app/apiSlice';
 
 const NewsletterBox = styled(Box)`
   .email {
@@ -27,14 +28,20 @@ interface NewsletterProps {
 
 const Newsletter = ({ email }: NewsletterProps) => {
   const dispatch = useDispatch();
+  const [subscribe] = usePostSubscribeMutation();
 
   const onClickConfirm = () => {
     dispatch(closeNewsletter());
+    try {
+      subscribe(email);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
     <>
-      <FixedBox>
+      <FixedBox bg="rgba(255, 255, 255, 0.5)">
         <NewsletterBox
           pa="25px 50px"
           bg="#000"

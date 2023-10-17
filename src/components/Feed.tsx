@@ -1,6 +1,6 @@
 import React, { useLayoutEffect } from 'react';
 import styled from 'styled-components';
-import { Box, FlexBox } from './Styled';
+import { Box, FlexBox, GlobalProps } from './Styled';
 import { closeFeed, initialCommonState } from '../app/slice';
 import { useDispatch } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,7 +8,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faInstagram } from '@fortawesome/free-brands-svg-icons';
 import Profile from './Profile';
 
-export const FixedBox = styled.section`
+export const FixedBox = styled.section<GlobalProps>`
   position: fixed;
   top: 0;
   left: 0;
@@ -18,8 +18,8 @@ export const FixedBox = styled.section`
   align-items: center;
   width: 100dvw;
   height: 100dvh;
-  background: rgba(255, 255, 255, 0.5);
   font-weight: 100;
+  background: ${(props) => props.bg};
   animation-name: fade-in;
   animation-duration: 0.5s;
   animation-timing-function: ease-in;
@@ -227,6 +227,7 @@ const Feed = ({ feed }: FeedProps) => {
   return (
     <>
       <FixedBox
+        bg="rgba(255, 255, 255, 0.5)"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             dispatch(closeFeed());
