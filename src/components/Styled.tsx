@@ -54,10 +54,12 @@ export interface GlobalProps {
   ftStyle?: string;
   color?: string;
   textAlign?: string;
+  boxShadow?: string;
   objFit?: string;
   objPosit?: string;
   overflow?: 'hidden' | 'scroll';
   transform?: string;
+  cursor?: 'pointer';
 }
 
 const GlobalStyle = css<GlobalProps>`
@@ -108,10 +110,12 @@ const GlobalStyle = css<GlobalProps>`
   font-style: ${({ ftStyle }) => ftStyle};
   color: ${({ color }) => color};
   text-align: ${({ textAlign }) => textAlign};
+  box-shadow: ${({ boxShadow }) => boxShadow};
   object-fit: ${({ objFit }) => objFit};
   object-position: ${({ objPosit }) => objPosit};
   overflow: ${({ overflow }) => overflow};
   transform: ${({ transform }) => transform};
+  cursor: ${({ cursor }) => cursor};
 `;
 
 export const Container = styled.section`

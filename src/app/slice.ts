@@ -3,23 +3,31 @@ import { InstaFeeds, User } from './apiSlice';
 import { RootState } from './store';
 
 export interface commonState {
-  selector: 'main';
   secret: string;
   user: User | null;
   feed: { flag: boolean } & InstaFeeds;
   newsletter: { flag: boolean; email: string };
   signup: { flag: boolean; isSign: boolean };
+  cart: boolean;
+  filter: {
+    brand: string;
+    page: number;
+    price: { flag: boolean; maxPrice: number };
+    size: number[];
+    sort: number;
+  };
 }
 
+export const loadingImage = `${process.env.REACT_APP_SERVER_URL}/files/loading.png`;
+
 export const initialCommonState: commonState = {
-  selector: 'main',
   secret: '',
   user: null,
   feed: {
     flag: false,
     id: -1,
     media_type: 'IMAGE',
-    media_url: `${process.env.REACT_APP_SERVER_URL}/files/loading.png`,
+    media_url: loadingImage,
     permalink: '/',
     username: 'snowin.g',
     caption: '',
@@ -32,6 +40,14 @@ export const initialCommonState: commonState = {
   signup: {
     flag: false,
     isSign: false,
+  },
+  cart: false,
+  filter: {
+    brand: 'all',
+    page: 1,
+    price: { flag: false, maxPrice: 1000000 },
+    size: [],
+    sort: 0,
   },
 };
 
@@ -48,9 +64,6 @@ const slice = createSlice({
   name: 'common',
   initialState: initialCommonState,
   reducers: {
-    setSelector: (state, action: { payload: commonState['selector'] }) => {
-      state.selector = action.payload;
-    },
     setSecret: (state, action: { payload: commonState['secret'] }) => {
       state.secret = action.payload;
     },
@@ -91,6 +104,36 @@ const slice = createSlice({
       bodyScrollDisableHandler(false);
       state.signup = initialCommonState.signup;
     },
+    showCart: (state, action: {}) => {
+      bodyScrollDisableHandler(true);
+      state.cart = true;
+    },
+    closeCart: (state, action: {}) => {
+      bodyScrollDisableHandler(false);
+      state.cart = false;
+    },
+    setFilter: (
+      state,
+      action: {
+        payload: {
+          brand?: string;
+          page?: number;
+          price?: { flag: boolean; maxPrice: number };
+          size?: number[];
+          sort?: number;
+        };
+      }
+    ) => {
+      const { brand, page, price, size, sort } = action.payload;
+      state.filter.brand = brand ? brand : state.filter.brand;
+      state.filter.page = page ? page : state.filter.page;
+      state.filter.price = price ? price : state.filter.price;
+      state.filter.size = size ? size : state.filter.size;
+      state.filter.sort = typeof sort === 'number' ? sort : state.filter.sort;
+    },
+    resetFilter: (state, action: {}) => {
+      state.filter = initialCommonState.filter;
+    },
   },
 });
 
@@ -98,7 +141,6 @@ const reducer = slice.reducer;
 export default reducer;
 export const {
   setUser,
-  setSelector,
   setSecret,
   showFeed,
   closeFeed,
@@ -106,11 +148,23 @@ export const {
   closeNewsletter,
   showSignup,
   closeSignup,
+  showCart,
+  closeCart,
+  setFilter,
+  resetFilter,
 } = slice.actions;
 export const selectCommon = (state: RootState) => state.common;
 export const selectUser = (state: RootState) => state.common.user;
-export const selectSelector = (state: RootState) => state.common.selector;
 export const selectSecret = (state: RootState) => state.common.secret;
 export const selectFeed = (state: RootState) => state.common.feed;
 export const selectNewsletter = (state: RootState) => state.common.newsletter;
 export const selectSignup = (state: RootState) => state.common.signup;
+export const selectCart = (state: RootState) => state.common.cart;
+export const selectFilter = (state: RootState) => state.common.filter;
+export const selectFilterBrand = (state: RootState) =>
+  state.common.filter.brand;
+export const selectFilterPage = (state: RootState) => state.common.filter.page;
+export const selectFilterPrice = (state: RootState) =>
+  state.common.filter.price;
+export const selectFilterSize = (state: RootState) => state.common.filter.size;
+export const selectFilterSort = (state: RootState) => state.common.filter.sort;

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useLayoutEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Box, FlexBox } from './Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,8 +13,10 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { useDispatch } from 'react-redux';
 import { showNewsletter } from '../app/slice';
+import { useLocation } from 'react-router-dom';
 
-const FooterBox = styled.section`
+const FooterBox = styled.section<{ ma?: string }>`
+  margin: ${(props) => props.ma};
   position: relative;
 `;
 
@@ -147,6 +149,9 @@ const Copylight = styled(Box)`
 
 const Footer = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
+
+  const [margin, setMargin] = useState('0');
 
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<boolean>(false);
@@ -166,9 +171,17 @@ const Footer = () => {
     }
   };
 
+  useLayoutEffect(() => {
+    if (location.pathname === '/brands') {
+      setMargin('0 0 0 240px');
+    } else {
+      setMargin('0');
+    }
+  }, [location]);
+
   return (
     <>
-      <FooterBox>
+      <FooterBox ma={margin}>
         <FooterHeader>
           <FooterItem>
             <p className="newsletter">NEWSLETTER</p>

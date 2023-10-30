@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { Box, Container } from '../../components/Styled';
 import styled from 'styled-components';
 import MainBg from './MainBg';
@@ -6,10 +6,14 @@ import ProductSlider from './ProductSlider';
 import ProductBanner from './ProductBanner';
 import ProductSubject from './ProductSubject';
 import InstaFeeds from './InstaFeeds';
+import { useNavigate } from 'react-router-dom';
 
 const StyledBox = styled(Box)`
   margin-top: 30vh;
   margin-left: 30vw;
+  animation-name: fade-in;
+  animation-duration: 0.5s;
+  animation-timing-function: ease-in;
 
   a {
     display: inline-block;
@@ -40,13 +44,23 @@ const StyledBox = styled(Box)`
 `;
 
 const MainPage = (): JSX.Element => {
+  const navigator = useNavigate();
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <>
       <MainBg />
       <Container mt="100px" posit="relative" wid="100%" overflow="hidden">
         <Box posit="relative" minHei="calc(70dvh - 15px)">
           <StyledBox>
-            <a href="#">
+            <a
+              onClick={() => {
+                navigator('/new');
+              }}
+            >
               <h4>Just In</h4>
               <h1>New Season</h1>
               <h1>Arrival</h1>
@@ -54,7 +68,7 @@ const MainPage = (): JSX.Element => {
             </a>
           </StyledBox>
         </Box>
-        <ProductSlider type="recent" text="new arrivials" />
+        <ProductSlider type="new" text="new arrivials" />
         <ProductBanner type="type" />
         <ProductSlider type="main" text="jacket new arrivials" />
         <ProductBanner type="subject" main bg="#828282" />

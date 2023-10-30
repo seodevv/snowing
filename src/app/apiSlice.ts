@@ -6,35 +6,72 @@ export const baseQuery = fetchBaseQuery({
   credentials: 'include',
 });
 
-export interface MessageResponse {
-  message?: string;
+export interface Product {
+  id: number;
 }
 
-export interface ProductType {
-  id: number;
+export interface Banner extends Product {
+  type?: number;
+  banner: string;
+  image: string;
+  show_main?: boolean;
+}
+
+export interface Brands extends Product {
+  brand: string;
+  logo: string;
+}
+
+export interface ProductType extends Product {
   type: string;
   image: string;
 }
 
-export interface ProductSubject {
-  id: number;
+export interface ProductSubject extends Product {
   type?: number;
   subject: string;
   show_main: boolean;
   image: string;
 }
 
-export interface ProductList {
-  id?: number;
-  subject?: number;
+export interface ProductList extends Product {
   subjectName?: string;
+  brandName?: string;
+  brandLogo?: string | null;
   name: string;
+  desc: string;
   price: number;
   image: string;
-  size?: string;
+  size: string;
   order?: number;
   regist?: string;
   sell?: number;
+}
+
+export interface ProductNavigator extends Product {
+  type: string;
+  subject: string;
+  name: string;
+}
+
+export interface ProductSize extends Product {
+  sizeId: number;
+  size: string;
+  quantity: number;
+}
+
+export interface ProductDetail extends Product {
+  detail: number;
+  text: string;
+}
+
+export interface Wish {
+  result: boolean;
+}
+
+export interface Size extends Product {
+  size: string;
+  order?: number;
 }
 
 export interface InstaFeeds {
@@ -64,46 +101,16 @@ export interface Duplcated {
   duplicated: boolean;
 }
 
-export interface ProductTypeResponse extends MessageResponse {
-  data: ProductType[];
-}
-
-export interface ProductSubjectResponse extends MessageResponse {
-  data: ProductSubject[];
-}
-
-export interface ProductListResponse extends MessageResponse {
-  data: ProductList[];
-}
-
-export interface bannerResponse extends MessageResponse {
-  data: ProductType[] | ProductSubject[];
-}
-
-export interface InstaFeedsResponse extends MessageResponse {
-  data: {
-    feeds: InstaFeeds[];
-    isEnd: boolean;
-  };
-}
-
-export interface StringResponse extends MessageResponse {
-  data: string;
-}
-
-export interface LoginResponse extends MessageResponse {
-  data: User;
-}
-
-export interface DuplicatedResponse extends MessageResponse {
-  data: Duplcated;
+export interface Response<T> {
+  data: T;
+  message: string;
 }
 
 export const apiSlice = createApi({
   baseQuery,
-  tagTypes: ['User', 'Product'],
+  tagTypes: ['User', 'Product', 'Wish'],
   endpoints: (builder) => ({
-    getUserInfo: builder.query<LoginResponse, void>({
+    getUserInfo: builder.query<Response<User>, void>({
       query: () => `/auth/user/login/info`,
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
@@ -115,7 +122,7 @@ export const apiSlice = createApi({
       },
       providesTags: [{ type: 'User', id: 'LIST' }],
     }),
-    getSecret: builder.query<StringResponse, void>({
+    getSecret: builder.query<Response<string>, void>({
       query: () => `/get/secret`,
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
@@ -126,14 +133,24 @@ export const apiSlice = createApi({
         } catch (error) {}
       },
     }),
-    getProductType: builder.query<ProductTypeResponse, void>({
+    getProductType: builder.query<Response<ProductType[]>, void>({
       query: () => `/get/product/type`,
     }),
-    getProductSubject: builder.query<ProductSubjectResponse, void>({
+    getProductSubject: builder.query<Response<ProductSubject[]>, void>({
       query: () => `/get/product/subject`,
     }),
-    getProductsList: builder.query<ProductListResponse, { type: string }>({
-      query: ({ type }) => `/get/product/list?type=${type}`,
+    getProductsList: builder.query<
+      Response<ProductList[]>,
+      {
+        type: string;
+        limit?: number;
+        brand?: string;
+        price?: number;
+        size?: number[];
+      }
+    >({
+      query: ({ type, limit = 12, brand = '', price = '', size = [] }) =>
+        `/get/product/list?type=${type}&limit=${limit}&brand=${brand}&price=${price}&size=${size.toString()}`,
       // transformResponse: (response: { data: Product }, meta, arg) => {
       //   return response.data;
       // },
@@ -153,13 +170,53 @@ export const apiSlice = createApi({
             ]
           : [{ type: 'Product', id: 'LIST' }],
     }),
-    getBanner: builder.query<bannerResponse, { type: string }>({
-      query: ({ type }) => `/get/product/banner?type=${type}`,
+    getProductsListById: builder.query<
+      Response<ProductList>,
+      string | undefined
+    >({
+      query: (id) => `/get/product/list/${id}`,
+      providesTags: (r, e, args) => [{ type: 'Product', id: args }],
     }),
-    getInstaFeed: builder.query<InstaFeedsResponse, number>({
+    getProductNavigator: builder.query<
+      Response<ProductNavigator>,
+      string | undefined
+    >({
+      query: (id) => `/get/product/navigator?id=${id}`,
+    }),
+    getProductSize: builder.query<Response<ProductSize[]>, string | undefined>({
+      query: (id) => `/get/product/size?id=${id}`,
+    }),
+    getProductDetail: builder.query<
+      Response<ProductDetail[]>,
+      string | undefined
+    >({
+      query: (id) => `/get/product/detail?id=${id}`,
+    }),
+    getWish: builder.query<Response<Wish>, { userId: number; listId: string }>({
+      query: ({ userId, listId }) =>
+        `/get/wish?userId=${userId}&listId=${listId}`,
+      providesTags: (r, e, args) => [{ type: 'Wish', id: 'LIST' }],
+    }),
+    getBanner: builder.query<
+      Response<Banner[]>,
+      { type: 'type' | 'subject' | 'banner'; name?: string }
+    >({
+      query: ({ type, name }) =>
+        `/get/product/banner?type=${type}&name=${name}`,
+    }),
+    getBrands: builder.query<Response<Brands[]>, void>({
+      query: () => `/get/product/brands`,
+    }),
+    getSizeGroup: builder.query<Response<Size[]>, void>({
+      query: () => `/get/product/size/group`,
+    }),
+    getInstaFeed: builder.query<
+      Response<{ feeds: InstaFeeds[]; isEnd: boolean }>,
+      number
+    >({
       query: (page) => `/get/insta/feeds?page=${page}`,
     }),
-    postSubscribe: builder.mutation<StringResponse, string>({
+    postSubscribe: builder.mutation<Response<string>, string>({
       query: (email) => ({
         url: '/post/mail/subscribe',
         method: 'post',
@@ -167,7 +224,7 @@ export const apiSlice = createApi({
       }),
     }),
     postLoginApp: builder.mutation<
-      LoginResponse,
+      Response<User>,
       { email: string; password: string }
     >({
       query: ({ email, password }) => ({
@@ -188,7 +245,7 @@ export const apiSlice = createApi({
       invalidatesTags: [{ type: 'User', id: 'LIST' }],
     }),
     postLoginGoogle: builder.mutation<
-      LoginResponse,
+      Response<User>,
       { access_token: string; token_type: string }
     >({
       query: ({ access_token, token_type }) => ({
@@ -206,7 +263,7 @@ export const apiSlice = createApi({
       },
       invalidatesTags: [{ type: 'User', id: 'LIST' }],
     }),
-    postLogout: builder.mutation<MessageResponse, void>({
+    postLogout: builder.mutation<Response<undefined>, void>({
       query: () => ({
         url: '/auth/user/logout',
         method: 'post',
@@ -217,8 +274,9 @@ export const apiSlice = createApi({
           dispatch(setUser(false));
         } catch (error) {}
       },
+      invalidatesTags: (r, e, a) => [{ type: 'Wish', id: 'LIST' }],
     }),
-    postDuplicated: builder.mutation<DuplicatedResponse, string>({
+    postDuplicated: builder.mutation<Response<Duplcated>, string>({
       query: (email) => ({
         url: '/auth/user/signup/duplicated',
         method: 'post',
@@ -227,7 +285,7 @@ export const apiSlice = createApi({
         },
       }),
     }),
-    postAuthCode: builder.mutation<StringResponse, string>({
+    postAuthCode: builder.mutation<Response<string>, string>({
       query: (email) => ({
         url: '/auth/user/signup/code',
         method: 'post',
@@ -237,7 +295,7 @@ export const apiSlice = createApi({
       }),
     }),
     postUserRegist: builder.mutation<
-      LoginResponse,
+      Response<User>,
       { email: string; password: string }
     >({
       query: ({ email, password }) => ({
@@ -258,6 +316,36 @@ export const apiSlice = createApi({
       },
       invalidatesTags: [{ type: 'User', id: 'LIST' }],
     }),
+    postWish: builder.mutation<
+      Response<undefined>,
+      { userId: number; listId: string }
+    >({
+      query: ({ userId, listId }) => ({
+        url: '/post/wish',
+        method: 'post',
+        body: {
+          userId,
+          listId,
+        },
+      }),
+      onQueryStarted: async (
+        { userId, listId },
+        { dispatch, queryFulfilled }
+      ) => {
+        try {
+          await queryFulfilled;
+          dispatch(
+            apiSlice.util.updateQueryData(
+              'getWish',
+              { userId, listId },
+              (draft) => {
+                draft.data.result = !draft.data.result;
+              }
+            )
+          );
+        } catch (error) {}
+      },
+    }),
   }),
 });
 
@@ -267,7 +355,14 @@ export const {
   useGetProductTypeQuery,
   useGetProductSubjectQuery,
   useGetProductsListQuery,
+  useGetProductsListByIdQuery,
+  useGetProductNavigatorQuery,
+  useGetProductSizeQuery,
+  useGetProductDetailQuery,
+  useGetWishQuery,
   useGetBannerQuery,
+  useGetBrandsQuery,
+  useGetSizeGroupQuery,
   useGetInstaFeedQuery,
   usePostSubscribeMutation,
   usePostLoginAppMutation,
@@ -276,4 +371,5 @@ export const {
   usePostDuplicatedMutation,
   usePostAuthCodeMutation,
   usePostUserRegistMutation,
+  usePostWishMutation,
 } = apiSlice;

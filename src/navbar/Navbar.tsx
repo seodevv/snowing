@@ -8,13 +8,16 @@ import {
   faCircleUser,
 } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUser, showSignup } from '../app/slice';
+import { resetFilter, selectUser, showCart, showSignup } from '../app/slice';
 import Profile from '../components/Profile';
 import { usePostLogoutMutation } from '../app/apiSlice';
+import { useNavigate } from 'react-router-dom';
+import BrandsMenu from '../pages/brands/BrandsMenu';
 
 const HeaderInfo = styled.div`
   padding: 5px;
   width: 100vw;
+  height: 30px;
   background: #000;
   font-family: 'Nanum Pen Script';
   font-size: 1rem;
@@ -109,11 +112,15 @@ const MenuBox = styled(Box)`
 const Navbar = (): JSX.Element => {
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
+  const navigator = useNavigate();
 
   const [myMenu, setMyMenu] = useState(false);
   const onClickMyMenu = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) setMyMenu((prev) => !prev);
   };
+
+  const [hover, setHover] = useState('idle');
+  const onMouseOverMenu = (menu: string) => setHover(menu);
 
   const [postLogout] = usePostLogoutMutation();
   const onClickLogout = async () => {
@@ -127,13 +134,12 @@ const Navbar = (): JSX.Element => {
 
   const main: string = 'snowing';
   const info: string =
-    'Free domestic ground shipping on orders $200. + over.  Order online - Free Pick up in store';
+    'Free domestic ground shipping on orders \\50,000. + over.  Order online - Free Pick up in store';
   const menus: string[] = [
     'SHOP',
     'NEW',
     'BRANDS',
     'CLOTHING',
-    'FOOTWEAR',
     'ACCESSORIES',
     'CONTACT',
   ];
@@ -157,6 +163,7 @@ const Navbar = (): JSX.Element => {
         wid="100%"
         zIndex={9999}
       >
+        <BrandsMenu active={hover === 'BRANDS'} setActive={setHover} />
         <HeaderInfo>{info}</HeaderInfo>
         <FlexBox
           ma="0 15px"
@@ -165,13 +172,25 @@ const Navbar = (): JSX.Element => {
           flexWrap="nowrap"
           flexJustCon="center"
           flexAlignItem="center"
+          hei="70px"
+          bg="#fff"
         >
-          <MainLogo>
+          <MainLogo onClick={() => navigator('/')}>
             {main.replace(/^[a-z]/, (item) => item.toLocaleUpperCase())}
           </MainLogo>
           <Menus flexGrow={1}>
             {menus.map((menu) => (
-              <span key={menu}>{menu}</span>
+              <span
+                key={menu}
+                onClick={() => {
+                  navigator(`/${menu.toLowerCase()}`);
+                  setHover('idle');
+                  dispatch(resetFilter());
+                }}
+                onMouseOver={() => onMouseOverMenu(menu)}
+              >
+                {menu}
+              </span>
             ))}
           </Menus>
           <Icons>
@@ -214,7 +233,13 @@ const Navbar = (): JSX.Element => {
                 </MenuBox>
               </>
             )}
-            <FontAwesomeIcon icon={faCartShopping} size="xl" />
+            <FontAwesomeIcon
+              icon={faCartShopping}
+              size="xl"
+              onClick={() => {
+                dispatch(showCart());
+              }}
+            />
           </Icons>
         </FlexBox>
       </Container>

@@ -1,11 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Box, FlexBox } from '../../components/Styled';
 import styled from 'styled-components';
-import {
-  ProductSubject,
-  ProductType,
-  useGetBannerQuery,
-} from '../../app/apiSlice';
+import { Banner, useGetBannerQuery } from '../../app/apiSlice';
 
 const BannerBox = styled(FlexBox)`
   .image-box {
@@ -45,9 +41,15 @@ const BannerBox = styled(FlexBox)`
     text-shadow: 2px 3px 7px white, 0 10px 1px #a1a1a1;
   }
 
-  .show {
+  .show,
+  .banner {
     visibility: visible;
     opacity: 1;
+  }
+
+  .banner {
+    user-select: none;
+    cursor: unset;
   }
 
   .loading {
@@ -64,7 +66,9 @@ const BannerBox = styled(FlexBox)`
 `;
 
 interface BannerProps {
-  type: string;
+  type: 'type' | 'subject' | 'banner';
+  name?: string;
+  title?: string;
   main?: boolean;
   pa?: string;
   height?: string;
@@ -75,6 +79,8 @@ type Timer = ReturnType<typeof setInterval>;
 
 const ProductBanner = ({
   type = 'type',
+  name = '',
+  title,
   main = false,
   height = '500px',
   pa = '25px',
@@ -85,35 +91,21 @@ const ProductBanner = ({
     isLoading,
     isSuccess,
     isError,
-  } = useGetBannerQuery({ type });
+  } = useGetBannerQuery({ type, name });
 
-  const [items, setItems] = useState<ProductType[] | ProductSubject[]>([
+  const [items, setItems] = useState<Banner[]>([
     {
       id: -1,
-      type: 'LOADING',
+      banner: 'LOADING',
       image: 'LOADING.png',
     },
   ]);
   const [current, setCurrent] = useState<number>(0);
   const timer = useRef<Timer | undefined>(undefined);
 
-  const isProductType = (
-    item: ProductType | ProductSubject
-  ): item is ProductType => {
-    if ((item as ProductSubject).subject) return false;
-    return true;
-  };
-
-  const isProductTypeArray = (
-    items: ProductType[] | ProductSubject[]
-  ): items is ProductType[] => {
-    if ((items[0] as ProductSubject).subject) return false;
-    return true;
-  };
-
   useLayoutEffect(() => {
     if (isSuccess) {
-      if (main && !isProductTypeArray(getBanner.data)) {
+      if (main) {
         setItems(getBanner.data.filter((v) => v.show_main));
       } else {
         setItems(getBanner.data); // set readState
@@ -123,7 +115,7 @@ const ProductBanner = ({
       setItems([
         {
           id: -1,
-          type: 'error',
+          banner: 'error',
           image: 'ERROR.png',
         },
       ]);
@@ -166,10 +158,17 @@ const ProductBanner = ({
                 src={`${process.env.REACT_APP_SERVER_URL}/files/${item.image}`}
                 alt={item.image}
               />
-              <a href="#" className={`title ${i === current && 'show'}`}>
-                <p>{isProductType(item) ? item.type : item.subject}</p>
-                {!isLoading && <p>SHOP OPEN</p>}
-              </a>
+              {(type === 'type' || type === 'subject') && (
+                <a href="#" className={`${i === current && 'show'}`}>
+                  <p>{item.banner}</p>
+                  {!isLoading && <p>SHOP OPEN</p>}
+                </a>
+              )}
+              {type === 'banner' && (
+                <a className="banner">
+                  <p>{title ? title.toUpperCase() : name.toUpperCase()}</p>
+                </a>
+              )}
             </div>
           ))}
         </BannerBox>

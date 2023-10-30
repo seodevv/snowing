@@ -8,6 +8,8 @@ import { faImages } from '@fortawesome/free-regular-svg-icons';
 import { faClapperboard } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 import { showFeed } from '../../app/slice';
+import loadingImage from '../../img/LOADING.png';
+import errorImage from '../../img/ERROR.png';
 
 const HeaderBox = styled(Box)`
   padding: 50px 0 25px;
@@ -200,6 +202,7 @@ const InstaFeeds = (): JSX.Element => {
   const {
     data: getFeeds,
     isSuccess,
+    isLoading,
     isFetching,
     isError,
   } = useGetInstaFeedQuery(page);
@@ -267,12 +270,21 @@ const InstaFeeds = (): JSX.Element => {
                 }`}
                 onClick={() => {
                   if (feed.caption === 'Loading') return;
+                  if (isError) return;
                   dispatch(showFeed(feed));
                 }}
               >
                 <img
                   className="image"
-                  src={isImage ? feed.media_url : feed.thumbnail_url}
+                  src={
+                    isLoading
+                      ? loadingImage
+                      : isError
+                      ? errorImage
+                      : isImage
+                      ? feed.media_url
+                      : feed.thumbnail_url
+                  }
                 />
                 <FontAwesomeIcon
                   className="type"
