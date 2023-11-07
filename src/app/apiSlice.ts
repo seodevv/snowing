@@ -1,40 +1,54 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { setSecret, setUser } from './slice';
+import { ContactInfo } from '../pages/contact/Contact';
 
 export const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_SERVER_URL,
   credentials: 'include',
 });
 
-export interface Product {
+export interface index {
   id: number;
 }
 
-export interface Banner extends Product {
-  type?: number;
+export interface Banner extends index {
+  category?: string;
+  type?: string;
   banner: string;
   image: string;
   show_main?: boolean;
 }
 
-export interface Brands extends Product {
+export interface Brands extends index {
   brand: string;
   logo: string;
+  image: string | null;
+  category: string;
+  desc: string;
 }
 
-export interface ProductType extends Product {
+export interface Category extends index {
+  category: string;
+  type: string;
+  subject: string;
+  order: number;
+}
+
+export interface ProductType extends index {
+  category: string;
   type: string;
   image: string;
 }
 
-export interface ProductSubject extends Product {
-  type?: number;
+export interface ProductSubject extends index {
+  category: string;
+  type: string;
   subject: string;
   show_main: boolean;
   image: string;
 }
 
-export interface ProductList extends Product {
+export interface ProductList extends index {
   subjectName?: string;
   brandName?: string;
   brandLogo?: string | null;
@@ -42,25 +56,25 @@ export interface ProductList extends Product {
   desc: string;
   price: number;
   image: string;
-  size: string;
   order?: number;
   regist?: string;
   sell?: number;
 }
 
-export interface ProductNavigator extends Product {
+export interface ProductNavigator extends index {
+  category: string;
   type: string;
   subject: string;
   name: string;
 }
 
-export interface ProductSize extends Product {
+export interface ProductSize extends index {
   sizeId: number;
   size: string;
   quantity: number;
 }
 
-export interface ProductDetail extends Product {
+export interface ProductDetail extends index {
   detail: number;
   text: string;
 }
@@ -69,7 +83,23 @@ export interface Wish {
   result: boolean;
 }
 
-export interface Size extends Product {
+export interface Cart
+  extends Pick<ProductList, 'id' | 'name' | 'image' | 'price'> {
+  sizeId: number;
+  size: string;
+  quantity: number;
+}
+
+export interface CartItems extends Cart {
+  user: number;
+}
+
+export interface Contact extends index {
+  key: keyof ContactInfo;
+  value: string;
+}
+
+export interface Size extends index {
   size: string;
   order?: number;
 }
@@ -101,6 +131,36 @@ export interface Duplcated {
   duplicated: boolean;
 }
 
+export interface Enquire {
+  result: boolean;
+}
+
+export interface Addresses extends index {
+  userId: number;
+  countryId: number;
+  country: string;
+  provinceId: number;
+  province: string;
+  lastName: string;
+  firstName: string;
+  postal_code: number;
+  city: string;
+  address: string;
+  etc: string;
+  phone: string;
+  isDefault: boolean;
+}
+
+export interface Country {
+  countryId: number;
+  country: string;
+}
+
+export interface Province extends Country {
+  provinceId: number;
+  province: string;
+}
+
 export interface Response<T> {
   data: T;
   message: string;
@@ -108,7 +168,7 @@ export interface Response<T> {
 
 export const apiSlice = createApi({
   baseQuery,
-  tagTypes: ['User', 'Product', 'Wish'],
+  tagTypes: ['User', 'Product', 'Wish', 'Addresses'],
   endpoints: (builder) => ({
     getUserInfo: builder.query<Response<User>, void>({
       query: () => `/auth/user/login/info`,
@@ -133,6 +193,9 @@ export const apiSlice = createApi({
         } catch (error) {}
       },
     }),
+    getProductCategory: builder.query<Response<Category[]>, string>({
+      query: (category) => `/get/product/category?category=${category}`,
+    }),
     getProductType: builder.query<Response<ProductType[]>, void>({
       query: () => `/get/product/type`,
     }),
@@ -142,15 +205,35 @@ export const apiSlice = createApi({
     getProductsList: builder.query<
       Response<ProductList[]>,
       {
-        type: string;
+        order: string;
         limit?: number;
         brand?: string;
         price?: number;
         size?: number[];
+        category?: string;
+        type?: string;
+        subjects?: string[];
       }
     >({
-      query: ({ type, limit = 12, brand = '', price = '', size = [] }) =>
-        `/get/product/list?type=${type}&limit=${limit}&brand=${brand}&price=${price}&size=${size.toString()}`,
+      query: ({
+        order,
+        limit = 12,
+        brand = '',
+        price = '',
+        size = [],
+        category = '',
+        type = '',
+        subjects = [],
+      }) => {
+        let url = `/get/product/list?order=${order}&limit=${limit}`;
+        url += brand ? `&brand=${brand}` : '';
+        url += price ? `&price=${price}` : '';
+        url += size.length !== 0 ? `&size=${size.toString()}` : '';
+        url += category ? `&category=${category}` : '';
+        url += type ? `&type=${type}` : '';
+        url += subjects.length !== 0 ? `&subjects=${subjects.toString()}` : '';
+        return url;
+      },
       // transformResponse: (response: { data: Product }, meta, arg) => {
       //   return response.data;
       // },
@@ -197,18 +280,55 @@ export const apiSlice = createApi({
         `/get/wish?userId=${userId}&listId=${listId}`,
       providesTags: (r, e, args) => [{ type: 'Wish', id: 'LIST' }],
     }),
+    getCart: builder.query<Response<CartItems[]>, number>({
+      query: (user) => `/get/product/cart?user=${user}`,
+    }),
+    getContact: builder.query<Response<Contact[]>, { key?: string[] }>({
+      query: ({ key }) =>
+        `/get/product/contact${key ? `?key=${key.toString()}` : ''}`,
+    }),
     getBanner: builder.query<
       Response<Banner[]>,
       { type: 'type' | 'subject' | 'banner'; name?: string }
     >({
-      query: ({ type, name }) =>
-        `/get/product/banner?type=${type}&name=${name}`,
+      query: ({ type, name }) => {
+        let url = `/get/product/banner?type=${type}`;
+        if (name) url += `&name=${name}`;
+        return url;
+      },
     }),
-    getBrands: builder.query<Response<Brands[]>, void>({
-      query: () => `/get/product/brands`,
+    getBrands: builder.query<
+      Response<Brands[]>,
+      { category?: string; brand?: string }
+    >({
+      query: ({ category, brand }) => {
+        let url = '/get/product/brands?';
+        url += category ? `category=${category}&` : '';
+        url += brand ? `brand=${brand}` : '';
+        return url;
+      },
     }),
     getSizeGroup: builder.query<Response<Size[]>, void>({
       query: () => `/get/product/size/group`,
+    }),
+    getCountry: builder.query<Response<Country[]>, void>({
+      query: () => '/get/my/country',
+    }),
+    getProvince: builder.query<Response<Province[]>, number>({
+      query: (countryId) => `/get/my/province?countryId=${countryId}`,
+    }),
+    getAddresses: builder.query<Response<Addresses[]>, number>({
+      query: (user) => `/get/my/address?user=${user}`,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map((v) => ({
+                type: 'Addresses' as const,
+                id: v.id,
+              })),
+              { type: 'Addresses', id: 'LIST' },
+            ]
+          : [{ type: 'Addresses', id: 'LIST' }],
     }),
     getInstaFeed: builder.query<
       Response<{ feeds: InstaFeeds[]; isEnd: boolean }>,
@@ -274,7 +394,7 @@ export const apiSlice = createApi({
           dispatch(setUser(false));
         } catch (error) {}
       },
-      invalidatesTags: (r, e, a) => [{ type: 'Wish', id: 'LIST' }],
+      invalidatesTags: () => [{ type: 'Wish', id: 'LIST' }],
     }),
     postDuplicated: builder.mutation<Response<Duplcated>, string>({
       query: (email) => ({
@@ -346,12 +466,100 @@ export const apiSlice = createApi({
         } catch (error) {}
       },
     }),
+    postCart: builder.mutation<
+      Response<undefined>,
+      {
+        type: 'add' | 'delete' | 'increase' | 'decrease';
+        items: Cart[];
+        user: number;
+      }
+    >({
+      query: (body) => ({
+        url: '/post/product/cart',
+        method: 'post',
+        body,
+      }),
+      onQueryStarted: async (
+        { type, items, user },
+        { dispatch, queryFulfilled }
+      ) => {
+        try {
+          await queryFulfilled;
+          dispatch(
+            apiSlice.util.updateQueryData('getCart', user, (draft) => {
+              items.map((v) => {
+                const index = draft.data.findIndex(
+                  (d) => d.id === v.id && d.sizeId === v.sizeId
+                );
+                switch (type) {
+                  case 'add':
+                    if (index !== -1) {
+                      draft.data[index].quantity++;
+                    } else {
+                      draft.data.push({ user, ...v });
+                    }
+                    break;
+                  case 'delete':
+                    if (index !== -1) draft.data.splice(index, 1);
+                    break;
+                  case 'increase':
+                    if (index !== -1) draft.data[index].quantity++;
+                    break;
+                  case 'decrease':
+                    if (index !== -1 && draft.data[index].quantity > 1)
+                      draft.data[index].quantity--;
+                    break;
+                }
+              });
+            })
+          );
+        } catch (error) {}
+      },
+    }),
+    postEnquire: builder.mutation<
+      Response<Enquire>,
+      {
+        first: string;
+        last: string;
+        email: string;
+        phone: string;
+        message: string;
+      }
+    >({
+      query: (body) => ({
+        url: '/post/product/enquire',
+        method: 'post',
+        body,
+      }),
+    }),
+    postAddress: builder.mutation<
+      Response<void>,
+      Omit<Addresses, 'country' | 'province'> & { type: 'add' | 'edit' }
+    >({
+      query: (body) => ({
+        url: `/post/my/address/${body.type}`,
+        method: 'post',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Addresses', id: 'LIST' }],
+    }),
+    deleteAddress: builder.mutation<Response<void>, number>({
+      query: (id) => ({
+        url: `/post/my/address/delete`,
+        method: 'post',
+        body: {
+          id,
+        },
+      }),
+      invalidatesTags: [{ type: 'Addresses', id: 'LIST' }],
+    }),
   }),
 });
 
 export const {
   useGetUserInfoQuery,
   useGetSecretQuery,
+  useGetProductCategoryQuery,
   useGetProductTypeQuery,
   useGetProductSubjectQuery,
   useGetProductsListQuery,
@@ -360,9 +568,14 @@ export const {
   useGetProductSizeQuery,
   useGetProductDetailQuery,
   useGetWishQuery,
+  useGetCartQuery,
+  useGetContactQuery,
   useGetBannerQuery,
   useGetBrandsQuery,
   useGetSizeGroupQuery,
+  useGetCountryQuery,
+  useGetProvinceQuery,
+  useGetAddressesQuery,
   useGetInstaFeedQuery,
   usePostSubscribeMutation,
   usePostLoginAppMutation,
@@ -372,4 +585,8 @@ export const {
   usePostAuthCodeMutation,
   usePostUserRegistMutation,
   usePostWishMutation,
+  usePostCartMutation,
+  usePostEnquireMutation,
+  usePostAddressMutation,
+  useDeleteAddressMutation,
 } = apiSlice;

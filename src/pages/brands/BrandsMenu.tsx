@@ -2,6 +2,7 @@ import React, {
   Dispatch,
   SetStateAction,
   useLayoutEffect,
+  useRef,
   useState,
 } from 'react';
 import styled from 'styled-components';
@@ -10,8 +11,9 @@ import { Brands, useGetBrandsQuery } from '../../app/apiSlice';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { resetFilter } from '../../app/slice';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
-const MenuBox = styled(Box)<{ active?: boolean }>`
+export const MenuBox = styled(Box)<{ active?: boolean }>`
   position: fixed;
   top: ${(props) => (props.active ? '100px' : '-300px')};
   z-index: -1;
@@ -20,6 +22,7 @@ const MenuBox = styled(Box)<{ active?: boolean }>`
   background: #fff;
   box-shadow: 0 0 5px #777;
   transition: 0.3s top ease-in;
+  overflow: hidden;
 `;
 
 const Inner = styled(Box)`
@@ -64,7 +67,6 @@ const BrandsList = styled(Box)`
     cursor: pointer;
 
     &:hover {
-      font-weight: bold;
       text-decoration: underline;
       text-shadow: 3px 3px 1px #ccc, 4px 4px 1px #ccc, 5px 5px 1px #ccc;
       transform: scale(1.3);
@@ -86,29 +88,36 @@ const BrandsImage = styled(Box)`
     margin: 15px;
     position: relative;
     display: flex;
-    flex-flow: row nowrap;
-    width: 200%;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
     height: 100%;
     overflow: hidden;
 
-    &:hover {
-      img {
-        transform: translateX(-100%);
-      }
+    img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% - 15px);
+      height: calc(100% - 15px);
+      border: 10px groove rgba(0, 0, 0, 0.75);
+      object-fit: cover;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.8s all ease-in;
+      cursor: pointer;
     }
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: 0.3s all ease-in;
+    img.visible {
+      visibility: visible;
+      opacity: 1;
     }
 
     .border {
       position: absolute;
-      top: 0px;
-      left: 0px;
-      width: calc(50% - 15px);
+      top: 0;
+      left: 0;
+      width: calc(100% - 15px);
       height: calc(100% - 15px);
       border: 10px double rgba(255, 255, 255, 0.75);
     }
@@ -124,28 +133,47 @@ const BrandsMenu = ({ active, setActive }: BrandsMenuProps) => {
   const navigator = useNavigate();
   const dispatch = useDispatch();
 
-  const [brands, setBrands] = useState<Brands[]>(
-    Array(1)
-      .fill(undefined)
-      .map((v, i) => ({
-        id: -1,
-        brand: 'loading',
-        logo: '',
-      }))
-  );
-  const [images, setImages] = useState<string[]>([]);
+  const [brands, setBrands] = useState<Brands[]>([]);
+  const [images, setImages] = useState<Pick<Brands, 'brand' | 'image'>[]>([]);
+  const [current, setCurrent] = useState(0);
+  const timer = useRef<ReturnType<typeof setInterval>>();
 
-  const { data: getBrands, isSuccess, isError } = useGetBrandsQuery();
+  const { data: getBrands, isSuccess, isError } = useGetBrandsQuery({});
+
+  useLayoutEffect(() => {
+    if (active) {
+      timer.current = setInterval(() => {
+        setCurrent((prev) => {
+          if (prev === images.length - 1) return 0;
+          return prev + 1;
+        });
+      }, 2000);
+    }
+    return () => {
+      clearInterval(timer.current);
+    };
+  }, [active]);
 
   useLayoutEffect(() => {
     if (isSuccess) {
       setBrands(getBrands.data);
+      setImages(
+        getBrands.data
+          .filter((v) => typeof v.image === 'string')
+          .map((v) => ({
+            brand: v.brand,
+            image: v.image,
+          }))
+      );
     } else if (isError) {
       setBrands([
         {
           id: -1,
           brand: 'error',
           logo: '',
+          desc: '',
+          image: '',
+          category: '',
         },
       ]);
     }
@@ -175,8 +203,14 @@ const BrandsMenu = ({ active, setActive }: BrandsMenuProps) => {
           </BrandsList>
           <BrandsImage>
             <div className="image-box">
-              <img src="https://localhost:8080/files/VELVET ZIP-UP JACKET_SKY_BLUE_1.png" />
-              <img src="https://localhost:8080/files/VELVET ZIP-UP JACKET_SKY_BLUE_2.png" />
+              {images.map((v, i) => (
+                <LazyLoadImage
+                  key={v.brand}
+                  className={i === current ? 'visible' : ''}
+                  src={`${process.env.REACT_APP_SERVER_URL}/files/${v.image}`}
+                  alt={v.image ? v.image : 'brand'}
+                />
+              ))}
               <div className="border"></div>
             </div>
           </BrandsImage>

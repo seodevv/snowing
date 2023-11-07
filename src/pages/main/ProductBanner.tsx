@@ -2,6 +2,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Box, FlexBox } from '../../components/Styled';
 import styled from 'styled-components';
 import { Banner, useGetBannerQuery } from '../../app/apiSlice';
+import LoadingImage from '../../img/LOADING.png';
+import { useNavigate } from 'react-router-dom';
 
 const BannerBox = styled(FlexBox)`
   .image-box {
@@ -27,14 +29,28 @@ const BannerBox = styled(FlexBox)`
     position: absolute;
     top: 50%;
     left: 50%;
+    z-index: 1;
     font-size: 1.5rem;
     color: #fff;
     text-align: center;
-    cursor: pointer;
+    text-decoration: underline;
     visibility: hidden;
     opacity: 0;
     transform: translate(-50%, -50%);
-    transition: 1s all ease-in;
+    transition: 1s visibility ease-in;
+    transition: 1s opacity ease-in;
+    cursor: pointer;
+
+    &:hover {
+      font-weight: bold;
+      text-decoration: underline;
+      text-shadow: 3px 3px 1px #ccc, 4px 4px 1px #ccc, 5px 5px 1px #ccc;
+    }
+
+    &:active {
+      filter: blur(1px);
+      transition: none;
+    }
   }
 
   p {
@@ -65,11 +81,26 @@ const BannerBox = styled(FlexBox)`
   }
 `;
 
+const initialBanner = {
+  id: -1,
+  category: '',
+  banner: 'LOADING',
+  image: '',
+};
+
+const errorBanner = {
+  id: -1,
+  category: '',
+  banner: 'ERROR',
+  image: '',
+};
+
 interface BannerProps {
   type: 'type' | 'subject' | 'banner';
   name?: string;
   title?: string;
   main?: boolean;
+  open?: boolean;
   pa?: string;
   height?: string;
   bg?: string;
@@ -82,10 +113,13 @@ const ProductBanner = ({
   name = '',
   title,
   main = false,
+  open = false,
   height = '500px',
   pa = '25px',
   bg = '#000',
 }: BannerProps): JSX.Element => {
+  const navigator = useNavigate();
+
   const {
     data: getBanner,
     isLoading,
@@ -93,13 +127,7 @@ const ProductBanner = ({
     isError,
   } = useGetBannerQuery({ type, name });
 
-  const [items, setItems] = useState<Banner[]>([
-    {
-      id: -1,
-      banner: 'LOADING',
-      image: 'LOADING.png',
-    },
-  ]);
+  const [items, setItems] = useState<Banner[]>([initialBanner]);
   const [current, setCurrent] = useState<number>(0);
   const timer = useRef<Timer | undefined>(undefined);
 
@@ -108,17 +136,10 @@ const ProductBanner = ({
       if (main) {
         setItems(getBanner.data.filter((v) => v.show_main));
       } else {
-        setItems(getBanner.data); // set readState
+        setItems(getBanner.data);
       }
     } else if (isError) {
-      // set errorState
-      setItems([
-        {
-          id: -1,
-          banner: 'error',
-          image: 'ERROR.png',
-        },
-      ]);
+      setItems([errorBanner]);
     }
   }, [isLoading, isSuccess, isError]);
 
@@ -155,13 +176,34 @@ const ProductBanner = ({
                 className={`${isLoading && 'loading'} ${
                   i === current && 'show'
                 }`}
-                src={`${process.env.REACT_APP_SERVER_URL}/files/${item.image}`}
+                src={
+                  isLoading
+                    ? LoadingImage
+                    : `${process.env.REACT_APP_SERVER_URL}/files/${item.image}`
+                }
                 alt={item.image}
               />
               {(type === 'type' || type === 'subject') && (
-                <a href="#" className={`${i === current && 'show'}`}>
+                <a
+                  className={`${i === current && 'show'}`}
+                  onClick={() => {
+                    if (type === 'type' && item.category) {
+                      navigator(
+                        `/${item.category.toLowerCase()}/${item.banner.toLowerCase()}`
+                      );
+                    } else if (
+                      type === 'subject' &&
+                      item.type &&
+                      item.category
+                    ) {
+                      navigator(
+                        `/${item.category.toLowerCase()}/${item.type.toLowerCase()}/${item.banner.toLowerCase()}`
+                      );
+                    }
+                  }}
+                >
                   <p>{item.banner}</p>
-                  {!isLoading && <p>SHOP OPEN</p>}
+                  {!isLoading && open && <p>SHOP OPEN</p>}
                 </a>
               )}
               {type === 'banner' && (

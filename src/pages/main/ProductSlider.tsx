@@ -9,6 +9,11 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Header from './Header';
 import ProductView from './ProductView';
+import {
+  errorProduct,
+  initialProduct,
+  initialProductArray,
+} from '../product/Product';
 
 const Items = styled(FlexBox)`
   position: relative;
@@ -40,14 +45,14 @@ const Items = styled(FlexBox)`
 `;
 
 interface ProductSliderProps {
-  type: string;
+  order: string;
   text: string;
   pa?: string;
   bg?: string;
 }
 
 const ProductSlider = ({
-  type,
+  order,
   text,
   pa = '25px',
   bg = '#fff',
@@ -59,20 +64,11 @@ const ProductSlider = ({
     isSuccess,
     isError,
   } = useGetProductsListQuery({
-    type,
+    order,
   });
 
   const [products, setProducts] = useState<ProductList[]>(
-    Array(4)
-      .fill(undefined)
-      .map((_, i) => ({
-        id: i,
-        name: 'Loading Product',
-        desc: '',
-        image: 'LOADING.png',
-        price: 999999,
-        size: 'free',
-      }))
+    initialProductArray(4, initialProduct)
   );
   const [current, setCurrent] = useState<number>(-1);
 
@@ -98,24 +94,12 @@ const ProductSlider = ({
 
   useLayoutEffect(() => {
     if (isSuccess) {
-      setProducts(getList.data); // realState
+      setProducts(getList.data);
       setCurrent(
         getList.data.length <= 4 ? -1 : parseInt(getList.data.length / 2 + '')
       );
     } else if (isError) {
-      setProducts(
-        // errorState
-        Array(4)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Network Error. Please try again',
-            desc: '',
-            image: 'ERROR.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(4, errorProduct));
     }
   }, [isSuccess, isError]);
 

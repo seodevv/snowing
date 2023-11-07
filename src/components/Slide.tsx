@@ -3,6 +3,8 @@ import styled from 'styled-components';
 import { Box } from './Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import loadingImg from '../img/LOADING.png';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 const SlideBox = styled(Box)`
   display: flex;
@@ -32,6 +34,18 @@ const SlideBox = styled(Box)`
     &:active {
       opacity: 0.75;
     }
+
+    .loading {
+      background: repeating-linear-gradient(
+        45deg,
+        #c7cedd 50px,
+        #cbd2e2 100px,
+        #c7cedd 150px
+      );
+      background-size: 500% 500%;
+      animation: gradient 10s ease infinite;
+      filter: blur(3px);
+    }
   }
 
   .item + .item {
@@ -50,12 +64,13 @@ const SlideBox = styled(Box)`
 `;
 
 interface SlideProps {
+  isLoading: boolean;
   images: string;
   status: number;
   setStatus: Dispatch<SetStateAction<number>>;
 }
 
-const Slide = ({ images, status, setStatus }: SlideProps) => {
+const Slide = ({ isLoading, images, status, setStatus }: SlideProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const maxLength = images.split('/').length - 1;
 
@@ -122,8 +137,13 @@ const Slide = ({ images, status, setStatus }: SlideProps) => {
                 onScrollHandler(i);
               }}
             >
-              <img
-                src={`${process.env.REACT_APP_SERVER_URL}/files/${image}`}
+              <LazyLoadImage
+                className={isLoading ? 'loading' : ''}
+                src={
+                  isLoading
+                    ? loadingImg
+                    : `${process.env.REACT_APP_SERVER_URL}/files/${image}`
+                }
                 alt={image}
               />
             </div>

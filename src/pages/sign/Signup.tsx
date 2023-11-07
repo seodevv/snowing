@@ -15,7 +15,9 @@ import { closeSignup, selectSecret } from '../../app/slice';
 import google from '../../img/google.png';
 import { useGoogleLogin } from '@react-oauth/google';
 import {
+  Cart,
   usePostAuthCodeMutation,
+  usePostCartMutation,
   usePostDuplicatedMutation,
   usePostLoginAppMutation,
   usePostLoginGoogleMutation,
@@ -249,21 +251,34 @@ const Signup = () => {
   const [getDuplicated] = usePostDuplicatedMutation();
   const [getAuthCode] = usePostAuthCodeMutation();
   const [userRegist] = usePostUserRegistMutation();
+  const [addCart] = usePostCartMutation();
+  const addCartLocalToDB = async (user: number) => {
+    const local = localStorage.getItem('cart');
+    let items: Cart[] = local ? JSON.parse(local) : [];
+    if (items.length === 0) return;
+
+    try {
+      await addCart({ type: 'add', items, user });
+      localStorage.removeItem('cart');
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const onClickSignup = async (type: 'login' | 'signup' | 'auth') => {
     if (type === 'login') {
       setIsLoading(true);
       try {
-        const {
-          data: { result },
-        } = await userCheck({
+        const { data } = await userCheck({
           email: emailInput,
           password: CryptoJS.AES.encrypt(passwordInput, secret).toString(),
         }).unwrap();
+
         setIsLoading(false);
-        if (!result) {
+        if (!data.result) {
           setIsError('Please check your ID/password.');
           return;
         }
+        addCartLocalToDB(data.id);
         dispatch(closeSignup());
       } catch (error) {
         console.error(error);
@@ -326,10 +341,11 @@ const Signup = () => {
   const googleLogin = useGoogleLogin({
     onSuccess: async ({ access_token, token_type }) => {
       try {
-        await getGoogleProfile({
+        const { data } = await getGoogleProfile({
           access_token,
           token_type,
         }).unwrap();
+        addCartLocalToDB(data.id);
         dispatch(closeSignup());
       } catch (error) {
         console.error(error);

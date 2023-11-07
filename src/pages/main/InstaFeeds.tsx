@@ -184,12 +184,14 @@ const MoreBox = styled(Box)`
 `;
 
 const InstaFeeds = (): JSX.Element => {
+  const dispatch = useDispatch();
+
   const initialState: InstaFeeds[] = Array(12)
     .fill(undefined)
     .map((_, i) => ({
       id: i,
       media_type: 'image',
-      media_url: `${process.env.REACT_APP_SERVER_URL}/files/LOADING.png`,
+      media_url: ``,
       permalink: '/',
       username: 'snowing',
       caption: 'Loading',
@@ -206,7 +208,6 @@ const InstaFeeds = (): JSX.Element => {
     isFetching,
     isError,
   } = useGetInstaFeedQuery(page);
-  const dispatch = useDispatch();
 
   const desc =
     "Snowboard clothing brand 'Snowing' is a brand that provides modern and stylish snowboard clothing and is famous for its products that perform excellently even in snow and cold temperatures. Snowing combines design and technological innovation to create products suitable for anyone with a passion for snow sports.";
@@ -222,7 +223,7 @@ const InstaFeeds = (): JSX.Element => {
           .map((_, i) => ({
             id: i,
             media_type: 'image',
-            media_url: `${process.env.REACT_APP_SERVER_URL}/files/ERROR.png`,
+            media_url: ``,
             permalink: '/',
             username: 'snowing',
             caption: 'Sorry, Network Error. please try again',

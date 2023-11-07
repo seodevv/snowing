@@ -5,6 +5,7 @@ import { Box } from '../../components/Styled';
 import loadingImage from '../../img/LOADING.png';
 import errorImage from '../../img/ERROR.png';
 import { ProductList } from '../../app/apiSlice';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
 
 const ProductViewBox = styled(Box)`
   padding: 10px;
@@ -114,18 +115,6 @@ const ProductViewBox = styled(Box)`
     animation: gradient 10s ease infinite;
     filter: blur(3px);
   }
-
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
 `;
 
 interface ProductViewProps {
@@ -176,7 +165,7 @@ const ProductView = ({
         }}
       >
         <div className="image-box">
-          <img
+          <LazyLoadImage
             className={`image ${
               (isLoading || item.image === 'LOADING.png') && 'loading'
             }`}
@@ -190,7 +179,7 @@ const ProductView = ({
             alt={imgArray[0]}
           />
           {imgArray[1] && (
-            <img
+            <LazyLoadImage
               className="hover"
               src={`${
                 isLoading

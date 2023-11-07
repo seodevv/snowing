@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { Box } from '../../components/Styled';
-import Category from '../../components/Category';
+import Filter from '../../components/Filter';
 import Price from '../../components/Price';
 import ProductView from '../main/ProductView';
 import {
@@ -23,8 +23,13 @@ import {
   selectFilterSize,
   setFilter,
 } from '../../app/slice';
+import {
+  errorProduct,
+  initialProduct,
+  initialProductArray,
+} from '../product/Product';
 
-const BrandsList = styled(Box)`
+const FilterList = styled(Box)`
   padding: 20px;
   position: fixed;
   top: 100px;
@@ -110,38 +115,18 @@ const BrandsPortal = () => {
 
   const [pageAction, setPageAction] = useState(false);
   const [end, setEnd] = useState(false);
-  const [brands, setBrands] = useState<Brands[]>([
-    {
-      id: -1,
-      brand: 'loading',
-      logo: '',
-    },
-  ]);
+  const [brands, setBrands] = useState<Brands[]>([]);
   const [products, setProducts] = useState<ProductList[]>(
-    Array(16)
-      .fill(undefined)
-      .map((_, i) => ({
-        id: i,
-        name: 'Loading Product',
-        desc: '',
-        image: 'LOADING.png',
-        price: 999999,
-        size: 'free',
-      }))
+    initialProductArray(16, initialProduct)
   );
-  const [sizes, setSizes] = useState<Size[]>([
-    {
-      id: -1,
-      size: 'loading',
-    },
-  ]);
+  const [sizes, setSizes] = useState<Size[]>([]);
 
   const {
     data: getBrands,
     isSuccess: brdIsSuc,
     isFetching: brdIsFet,
     isError: brdIsErr,
-  } = useGetBrandsQuery();
+  } = useGetBrandsQuery({});
 
   const {
     data: getSizes,
@@ -157,7 +142,7 @@ const BrandsPortal = () => {
     isFetching: plistIsFet,
     isError: plistIsErr,
   } = useGetProductsListQuery({
-    type: 'new',
+    order: 'new',
     limit: 16 * page,
     brand,
     price: price.flag ? price.maxPrice : undefined,
@@ -170,17 +155,21 @@ const BrandsPortal = () => {
 
   useLayoutEffect(() => {
     if (brdIsSuc && !brdIsFet) {
-      setBrands([{ id: 0, brand: 'all', logo: '' }, ...getBrands.data]);
+      setBrands([
+        { id: 0, brand: 'all', logo: '', image: '', desc: '', category: '' },
+        ...getBrands.data,
+      ]);
     } else if (brdIsErr) {
-      setBrands(
-        Array(1)
-          .fill(undefined)
-          .map((v) => ({
-            id: -1,
-            brand: 'error',
-            logo: '',
-          }))
-      );
+      setBrands([
+        {
+          id: -1,
+          brand: 'error',
+          logo: '',
+          image: '',
+          desc: '',
+          category: '',
+        },
+      ]);
     }
   }, [brdIsSuc, brdIsFet, brdIsErr]);
 
@@ -201,47 +190,25 @@ const BrandsPortal = () => {
 
   useLayoutEffect(() => {
     if (plistIsFet && !pageAction) {
-      setProducts(
-        Array(16)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Loading Product',
-            desc: '',
-            image: 'LOADING.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(16, initialProduct));
     } else if (plistIsSuc && !plistIsFet) {
       setProducts(getProductList.data);
       setPageAction(false);
       if (page * 16 > getProductList.data.length) setEnd(true);
       else setEnd(false);
     } else if (plistIsErr) {
-      setProducts(
-        Array(16)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Network Error. Please try again',
-            desc: '',
-            image: 'ERROR.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(16, errorProduct));
     }
   }, [plistIsSuc, plistIsFet, plistIsErr, brand, price, size]);
 
   return (
     <>
       <Box>
-        <BrandsList className="scroll-none">
+        <FilterList className="scroll-none">
           <div className="title">
             <span>DESIGNERS</span>
           </div>
-          <Category
+          <Filter
             text="Category"
             active
             list={
@@ -263,8 +230,8 @@ const BrandsPortal = () => {
               </ul>
             }
           />
-          <Category text="price" active={price.flag} list={<Price />} />
-          <Category
+          <Filter text="price" active={price.flag} list={<Price />} />
+          <Filter
             text="size"
             active={size.length !== 0}
             list={
@@ -297,7 +264,7 @@ const BrandsPortal = () => {
               </ul>
             }
           />
-        </BrandsList>
+        </FilterList>
         <ProductsList key={brand}>
           {products.map((item) => (
             <ProductView

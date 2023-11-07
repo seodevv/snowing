@@ -65,8 +65,16 @@ const SizeBox = styled(Box)`
 
 interface SizeProps {
   id: string | undefined;
-  status: string;
-  setStatus: Dispatch<SetStateAction<string>>;
+  status: {
+    sizeId: number;
+    size: string;
+  };
+  setStatus: Dispatch<
+    SetStateAction<{
+      sizeId: number;
+      size: string;
+    }>
+  >;
   error: boolean;
   setError: Dispatch<SetStateAction<boolean>>;
 }
@@ -74,9 +82,12 @@ interface SizeProps {
 const Size = ({ id, status, setStatus, error, setError }: SizeProps) => {
   const { data: sizes } = useGetProductSizeQuery(id, { skip: !id });
   const [active, setActive] = useState(false);
-  const onChangeSelect = (size: string) => {
+  const onChangeSelect = (sizeId: number, size: string) => {
     setError(false);
-    setStatus(size);
+    setStatus({
+      sizeId,
+      size,
+    });
   };
 
   return (
@@ -89,7 +100,7 @@ const Size = ({ id, status, setStatus, error, setError }: SizeProps) => {
             setActive((prev) => !prev);
           }}
         >
-          <span>{status.replace(/^[a-z]/, (v) => v.toUpperCase())}</span>
+          <span>{status.size.replace(/^[a-z]/, (v) => v.toUpperCase())}</span>
           <FontAwesomeIcon icon={faChevronDown} />
           {error && <Balloon text="Plz Select" />}
         </div>
@@ -98,7 +109,7 @@ const Size = ({ id, status, setStatus, error, setError }: SizeProps) => {
             <li
               key={v.id + v.size}
               onClick={() => {
-                onChangeSelect(v.size);
+                onChangeSelect(v.sizeId, v.size);
                 setActive(false);
               }}
             >

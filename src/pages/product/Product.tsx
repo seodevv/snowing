@@ -8,9 +8,13 @@ import Size from '../../components/Size';
 import Quantity from '../../components/Quantity';
 import Navigator from '../../components/Navigator';
 import {
+  Cart,
   ProductList,
+  ProductSize,
+  Wish,
   useGetProductsListByIdQuery,
   useGetWishQuery,
+  usePostCartMutation,
   usePostWishMutation,
 } from '../../app/apiSlice';
 import ProductDescription from './ProductDescription';
@@ -19,6 +23,7 @@ import ProductImage from './ProductImage';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, showCart, showSignup } from '../../app/slice';
 import { useParams } from 'react-router-dom';
+import { createCartObject } from '../cart/Cart';
 
 const ProductBox = styled.section`
   margin-top: 150px;
@@ -141,69 +146,100 @@ const ProductContent = styled(FlexBox)`
   }
 `;
 
-export interface Cart extends ProductList {
-  count: number;
-}
+export const initialProduct: ProductList = {
+  id: -1,
+  name: 'Loading Product',
+  brandName: 'Loading Brand',
+  brandLogo: '',
+  desc: 'Loading Description',
+  price: 999999,
+  image: '',
+};
+
+export const errorProduct: ProductList = {
+  id: -1,
+  name: 'Network Error. Please try again',
+  brandName: 'Error Brand',
+  brandLogo: '',
+  desc: 'Error Description',
+  price: 999999,
+  image: '',
+};
+
+export const initialProductArray = (
+  num: number,
+  init: ProductList
+): ProductList[] => {
+  return Array(num)
+    .fill(undefined)
+    .map((_, i) => ({
+      ...init,
+      id: i,
+    }));
+};
 
 const Product = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const [postWish] = usePostWishMutation();
+  const [postCart] = usePostCartMutation();
+
+  const [product, setProduct] = useState<ProductList>(initialProduct);
+  const [wish, setWish] = useState<Wish>({ result: false });
+  const [size, setSize] = useState<Pick<ProductSize, 'sizeId' | 'size'>>({
+    sizeId: -1,
+    size: 'select',
+  });
+  const [quantity, setQuantity] = useState<ProductSize['quantity']>(1);
+  const [current, setCurrent] = useState(0);
+  const [readMore, setReadMore] = useState(false);
+  const [sizeError, setSizeError] = useState(false);
 
   const {
-    data: product = {
-      data: {
-        id: -1,
-        name: 'Loading Product',
-        brandName: 'Loading Brand',
-        brandLogo: 'loading.png',
-        desc: 'Loading Description',
-        price: 999999,
-        image: 'loading.png',
-        size: 'free',
-      },
-    },
+    data: getProduct,
+    isLoading: prdLoad,
+    isSuccess: prdSuc,
+    isFetching: prdFet,
+    isError: prdErr,
   } = useGetProductsListByIdQuery(id, { skip: !id });
 
-  const { data: wish = { data: { result: false } } } = useGetWishQuery(
+  const {
+    data: getWish,
+    isLoading: wishLoad,
+    isSuccess: wishSuc,
+    isFetching: wishFet,
+    isError: wishErr,
+  } = useGetWishQuery(
     { userId: user ? user.id : -1, listId: id ? id : '-1' },
     { skip: !user?.id || !id ? true : false }
   );
 
-  const [current, setCurrent] = useState(0);
-  const [readMore, setReadMore] = useState(false);
-  const [size, setSize] = useState('select');
-  const [sizeError, setSizeError] = useState(false);
-  const [quantity, setQuantity] = useState(1);
-
-  const addCartHandler = () => {
-    if (product.data.id === -1) return;
-    if (size === 'select') return setSizeError(true);
+  const addCartHandler = async () => {
+    if (product.id === -1) return;
+    if (size.size === 'select') return setSizeError(true);
 
     if (!user) {
       const local = localStorage.getItem('cart');
       let items: Cart[] = local ? JSON.parse(local) : [];
       const check = items.findIndex(
-        (v) => v.id === product.data.id && v.size === product.data.size
+        (v) => v.id === product.id && v.sizeId === size.sizeId
       );
       if (check !== -1) {
-        items[check].count++;
+        items[check].quantity++;
       } else {
-        items.push({
-          id: product.data.id,
-          name: product.data.name,
-          desc: product.data.desc,
-          price: product.data.price,
-          image: product.data.image,
-          size: size,
-          count: quantity,
-        });
+        items.push(createCartObject(product, size, quantity));
       }
       localStorage.setItem('cart', JSON.stringify(items));
       dispatch(showCart());
       return;
     }
+
+    try {
+      let items: Cart[] = [createCartObject(product, size, quantity)];
+      await postCart({ type: 'add', items, user: user.id });
+      dispatch(showCart());
+    } catch (error) {}
   };
 
   useLayoutEffect(() => {
@@ -211,10 +247,36 @@ const Product = () => {
   }, []);
 
   useLayoutEffect(() => {
-    setSize('select');
+    setCurrent(0);
+    setReadMore(false);
+    setSize({ sizeId: -1, size: 'select' });
     setSizeError(false);
     setQuantity(1);
   }, [id]);
+
+  useLayoutEffect(() => {
+    if (prdFet) {
+      setProduct(initialProduct);
+    } else if (prdSuc && !prdFet) {
+      setProduct(getProduct.data);
+    } else if (prdErr) {
+      setProduct(errorProduct);
+    }
+  }, [prdSuc, prdFet, prdErr, id]);
+
+  useLayoutEffect(() => {
+    if (wishFet) {
+      setWish({
+        result: false,
+      });
+    } else if (wishSuc && !wishFet) {
+      setWish(getWish.data);
+    } else if (wishErr) {
+      setWish({
+        result: false,
+      });
+    }
+  }, [wishSuc, wishFet, wishErr, id]);
 
   return (
     <>
@@ -223,35 +285,40 @@ const Product = () => {
           <Navigator id={id} />
           <ProductContent>
             <Slide
-              images={product.data.image}
+              isLoading={prdLoad || prdFet}
+              images={product.image}
               status={current}
               setStatus={setCurrent}
             />
-            <ProductImage images={product.data.image} status={current} />
+            <ProductImage
+              isLoading={prdLoad || prdFet}
+              images={product.image}
+              status={current}
+            />
             <div className="info">
               <div className="brand">
-                {product.data.brandLogo ? (
+                {product.brandLogo ? (
                   <img
-                    src={`${process.env.REACT_APP_SERVER_URL}/files/${product.data.brandLogo}`}
-                    alt={product.data.brandLogo}
+                    src={`${process.env.REACT_APP_SERVER_URL}/files/${product.brandLogo}`}
+                    alt={product.brandLogo}
                   />
                 ) : (
                   <span>
-                    {product.data.brandName?.replace(/^[a-z]/, (v) =>
+                    {product.brandName?.replace(/^[a-z]/, (v) =>
                       v.toUpperCase()
                     )}
                   </span>
                 )}
               </div>
-              <h1 className="name">{product.data.name}</h1>
-              <p className="price">\{product.data.price.toLocaleString()}</p>
+              <h1 className="name">{product.name}</h1>
+              <p className="price">\{product.price.toLocaleString()}</p>
               <p className="installment">
                 or 4 interest-free payments of \
-                {(product.data.price / 4).toLocaleString()} with Payment
+                {(product.price / 4).toLocaleString()} with Payment
               </p>
               <ProductDescription
                 id={id}
-                desc={product.data.desc}
+                desc={product.desc}
                 status={readMore}
               />
               <div
@@ -293,7 +360,7 @@ const Product = () => {
                   }}
                 >
                   <FontAwesomeIcon
-                    icon={wish.data.result ? heartB : heartA}
+                    icon={wish.result ? heartB : heartA}
                     size="lg"
                   />
                 </div>

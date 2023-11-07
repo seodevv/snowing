@@ -13,7 +13,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { useDispatch } from 'react-redux';
 import { showNewsletter } from '../app/slice';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const FooterBox = styled.section<{ ma?: string }>`
   margin: ${(props) => props.ma};
@@ -148,6 +148,7 @@ const Copylight = styled(Box)`
 `;
 
 const Footer = () => {
+  const navigator = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
@@ -172,7 +173,7 @@ const Footer = () => {
   };
 
   useLayoutEffect(() => {
-    if (location.pathname === '/brands') {
+    if (['/brands'].includes(location.pathname)) {
       setMargin('0 0 0 240px');
     } else {
       setMargin('0');
@@ -231,7 +232,7 @@ const Footer = () => {
         </FooterHeader>
         <FooterContent>
           <ul className="list">
-            <li>CONTACT US</li>
+            <li onClick={() => navigator('/contact')}>CONTACT US</li>
             <li>ABOUT</li>
             <li>RETURNS & SHIPPING</li>
             <li>TEAMS & CONDITION</li>

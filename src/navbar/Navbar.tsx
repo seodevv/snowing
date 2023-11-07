@@ -13,6 +13,7 @@ import Profile from '../components/Profile';
 import { usePostLogoutMutation } from '../app/apiSlice';
 import { useNavigate } from 'react-router-dom';
 import BrandsMenu from '../pages/brands/BrandsMenu';
+import Menu from '../components/Menu';
 
 const HeaderInfo = styled.div`
   padding: 5px;
@@ -85,15 +86,16 @@ const MenuBox = styled(Box)`
     position: absolute;
     top: 45px;
     left: -100px;
-    width: 150px;
+    width: 160px;
     background: #fff;
     font-size: 1rem;
     font-weight: 100;
     list-style: none;
     box-shadow: 5px 5px 10px #000;
-    animation-name: fade-in;
-    animation-duration: 0.3s;
-    animation-timing-function: ease-in;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s visibility ease-in;
+    transition: 0.3s opacity ease-in;
 
     li {
       margin: 0;
@@ -105,9 +107,59 @@ const MenuBox = styled(Box)`
         padding: 12px;
         border-top: 1px solid #000;
       }
+
+      &:hover {
+        border-left: 2px solid #000;
+        border-right: 2px solid #000;
+      }
     }
   }
+
+  .my.visible {
+    visibility: visible;
+    opacity: 1;
+  }
 `;
+
+export const MAIN: string = 'snowing';
+export const INFO: string =
+  'Free domestic ground shipping on orders \\50,000. + over.  Order online - Free Pick up in store';
+export const MENUS: string[] = [
+  'SHOP',
+  'NEW',
+  'BRANDS',
+  'CLOTHING',
+  'ACCESSORIES',
+  'CONTACT',
+];
+export const MYMENUS: { name: string; url: string; desc: string }[] = [
+  {
+    name: 'My Orders',
+    url: 'order',
+    desc: '주문 내역을 보시거나 최근 주문 상태를 확인하세요.',
+  },
+  {
+    name: 'My Addresses',
+    url: 'address',
+    desc: '자주 사용하는 주소를 추가하고 관리하세요.',
+  },
+  {
+    name: 'My Wallets',
+    url: 'wallet',
+    desc: '더 빠른 결제를 위해 신용카드 및 직불카드 정보를 저장하세요.',
+  },
+  {
+    name: 'My Wishlist',
+    url: 'wishlist',
+    desc: '위시리스트에 저장한 제품 보고 장바구니에 추가하세요.',
+  },
+  {
+    name: 'My Account',
+    url: 'account',
+    desc: '아래에서 개인 정보를 보고 편집하세요.',
+  },
+  { name: 'Logout', url: 'logout', desc: '' },
+];
 
 const Navbar = (): JSX.Element => {
   const user = useSelector(selectUser);
@@ -132,27 +184,6 @@ const Navbar = (): JSX.Element => {
     }
   };
 
-  const main: string = 'snowing';
-  const info: string =
-    'Free domestic ground shipping on orders \\50,000. + over.  Order online - Free Pick up in store';
-  const menus: string[] = [
-    'SHOP',
-    'NEW',
-    'BRANDS',
-    'CLOTHING',
-    'ACCESSORIES',
-    'CONTACT',
-  ];
-  const myMenus: string[] = [
-    'My Orders',
-    'My Addresses',
-    'My Wallets',
-    'My Subscriptions',
-    'My Wishlist',
-    'My Account',
-    'Logout',
-  ];
-
   return (
     <>
       <Container
@@ -164,7 +195,17 @@ const Navbar = (): JSX.Element => {
         zIndex={9999}
       >
         <BrandsMenu active={hover === 'BRANDS'} setActive={setHover} />
-        <HeaderInfo>{info}</HeaderInfo>
+        <Menu
+          menu="CLOTHING"
+          active={hover === 'CLOTHING'}
+          setActive={setHover}
+        />
+        <Menu
+          menu="ACCESSORIES"
+          active={hover === 'ACCESSORIES'}
+          setActive={setHover}
+        />
+        <HeaderInfo>{INFO}</HeaderInfo>
         <FlexBox
           ma="0 15px"
           pa="15px"
@@ -176,10 +217,10 @@ const Navbar = (): JSX.Element => {
           bg="#fff"
         >
           <MainLogo onClick={() => navigator('/')}>
-            {main.replace(/^[a-z]/, (item) => item.toLocaleUpperCase())}
+            {MAIN.replace(/^[a-z]/, (item) => item.toLocaleUpperCase())}
           </MainLogo>
           <Menus flexGrow={1}>
-            {menus.map((menu) => (
+            {MENUS.map((menu) => (
               <span
                 key={menu}
                 onClick={() => {
@@ -216,20 +257,28 @@ const Navbar = (): JSX.Element => {
                     size="lg"
                     onClick={(e) => onClickMyMenu(e)}
                   />
-                  {myMenu && (
-                    <ul className="my">
-                      {myMenus.map((menu, i) => {
-                        if (menu.toLowerCase() === 'logout') {
-                          return (
-                            <li key={i} onClick={() => onClickLogout()}>
-                              {menu}
-                            </li>
-                          );
-                        }
-                        return <li key={i}>{menu}</li>;
-                      })}
-                    </ul>
-                  )}
+                  <ul className={`my ${myMenu && 'visible'}`}>
+                    {MYMENUS.map((menu, i) => {
+                      if (menu.name.toLowerCase() === 'logout') {
+                        return (
+                          <li key={menu.name} onClick={() => onClickLogout()}>
+                            {menu.name}
+                          </li>
+                        );
+                      }
+                      return (
+                        <li
+                          key={menu.name}
+                          onClick={() => {
+                            navigator(`/my/${menu.url}`);
+                            setMyMenu(false);
+                          }}
+                        >
+                          {menu.name}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </MenuBox>
               </>
             )}

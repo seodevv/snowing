@@ -81,11 +81,14 @@ const Navigator = ({ id }: NavigatorProps) => {
     data: navi = {
       data: {
         id: -1,
-        name: 'Loading product',
-        subject: 'subject',
-        type: 'type',
+        category: '',
+        name: '',
+        subject: '',
+        type: '',
       },
     },
+    isLoading,
+    isError,
   } = useGetProductNavigatorQuery(id, { skip: !id });
 
   return (
@@ -102,7 +105,10 @@ const Navigator = ({ id }: NavigatorProps) => {
           <span className="depth">/</span>
           <span
             onClick={() => {
-              navigator(`/${navi.data.type}`);
+              if (isLoading || isError) return;
+              navigator(
+                `/${navi.data.category.toLowerCase()}/${navi.data.type.toLowerCase()}`
+              );
             }}
           >
             {navi.data.type}
@@ -110,7 +116,10 @@ const Navigator = ({ id }: NavigatorProps) => {
           <span className="depth">/</span>
           <span
             onClick={() => {
-              navigator(`/${navi.data.type}/${navi.data.subject}`);
+              if (isLoading || isError) return;
+              navigator(
+                `/${navi.data.category.toLowerCase()}/${navi.data.type.toLowerCase()}/${navi.data.subject.toLowerCase()}`
+              );
             }}
           >
             {navi.data.subject}

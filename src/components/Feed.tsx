@@ -20,6 +20,7 @@ export const FixedBox = styled.section<GlobalProps>`
   height: 100dvh;
   font-weight: 100;
   background: ${(props) => props.bg};
+  backdrop-filter: ${(props) => props.backdropFilter};
   animation-name: fade-in;
   animation-duration: 0.5s;
   animation-timing-function: ease-in;

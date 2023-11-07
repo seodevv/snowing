@@ -38,7 +38,7 @@ interface CategoryProps {
   list?: ReactNode;
 }
 
-const Category = ({ text, active = false, list }: CategoryProps) => {
+const Filter = ({ text, active = false, list }: CategoryProps) => {
   const [view, setView] = useState(active);
   const onChangeActive = () => setView((prev) => !prev);
 
@@ -60,4 +60,4 @@ const Category = ({ text, active = false, list }: CategoryProps) => {
   );
 };
 
-export default Category;
+export default Filter;

@@ -38,11 +38,13 @@ export interface GlobalProps {
   bg?: string;
   bgSize?: string;
   bgPosit?: string;
+  backdropFilter?: string;
   bd?: string;
   bdTop?: string;
   bdRight?: string;
   bdBottom?: string;
   bdLeft?: string;
+  bdColor?: string;
   br?: string;
   brTR?: string;
   brBR?: string;
@@ -53,12 +55,18 @@ export interface GlobalProps {
   ftWeight?: string;
   ftStyle?: string;
   color?: string;
-  textAlign?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  textDecoration?: 'underline' | 'unset';
+  textUnderlineOffset?: string;
+  lineHeight?: string;
+  letterSpacing?: string;
+  wordSpacing?: string;
   boxShadow?: string;
   objFit?: string;
   objPosit?: string;
   overflow?: 'hidden' | 'scroll';
   transform?: string;
+  transition?: string;
   cursor?: 'pointer';
 }
 
@@ -94,11 +102,13 @@ const GlobalStyle = css<GlobalProps>`
   background: ${({ bg }) => bg};
   background-size: ${({ bgSize }) => bgSize};
   background-position: ${({ bgPosit }) => bgPosit};
+  backdrop-filter: ${({ backdropFilter }) => backdropFilter};
   border: ${({ bd }) => bd};
   border-top: ${({ bdTop }) => bdTop};
   border-right: ${({ bdRight }) => bdRight};
   border-bottom: ${({ bdBottom }) => bdBottom};
   border-left: ${({ bdLeft }) => bdLeft};
+  border-color: ${({ bdColor }) => bdColor};
   border-radius: ${({ br }) => br};
   border-top-right-radius: ${({ brTR }) => brTR};
   border-bottom-right-radius: ${({ brBR }) => brBR};
@@ -110,32 +120,83 @@ const GlobalStyle = css<GlobalProps>`
   font-style: ${({ ftStyle }) => ftStyle};
   color: ${({ color }) => color};
   text-align: ${({ textAlign }) => textAlign};
+  text-decoration: ${({ textDecoration }) => textDecoration};
+  text-underline-offset: ${({ textUnderlineOffset }) => textUnderlineOffset};
+  line-height: ${({ lineHeight }) => lineHeight};
+  letter-spacing: ${({ letterSpacing }) => letterSpacing};
+  word-spacing: ${({ wordSpacing }) => wordSpacing};
   box-shadow: ${({ boxShadow }) => boxShadow};
   object-fit: ${({ objFit }) => objFit};
   object-position: ${({ objPosit }) => objPosit};
   overflow: ${({ overflow }) => overflow};
   transform: ${({ transform }) => transform};
+  transition: ${({ transition }) => transition};
   cursor: ${({ cursor }) => cursor};
 `;
 
 export const Container = styled.section`
   ${GlobalStyle}
 `;
-
 export const Box = styled.div`
   ${GlobalStyle}
 `;
-
 export const FlexBox = styled.div`
   ${GlobalStyle}
   display: flex;
 `;
-
 export const GridBox = styled.div`
   ${GlobalStyle}
   display: grid;
 `;
-
 export const Img = styled.img`
   ${GlobalStyle}
+`;
+export const Input = styled.input`
+  ${GlobalStyle}
+`;
+export const H1 = styled.h1`
+  ${GlobalStyle}
+`;
+export const H2 = styled.h2`
+  ${GlobalStyle}
+`;
+export const H3 = styled.h3`
+  ${GlobalStyle}
+`;
+export const H4 = styled.h4`
+  ${GlobalStyle}
+`;
+export const H5 = styled.h5`
+  ${GlobalStyle}
+`;
+export const H6 = styled.h6`
+  ${GlobalStyle}
+`;
+export const P = styled.p`
+  ${GlobalStyle}
+`;
+export const Span = styled.span`
+  ${GlobalStyle}
+`;
+export const Button = styled.button`
+  ${GlobalStyle}
+  padding: ${(props) => (props.pa ? props.pa : '6px 12px')};
+  background: ${(props) => (props.bg ? props.bg : 'transparent')};
+  border: ${(props) => (props.bd ? props.bd : 'none')};
+  border-radius: ${(props) => (props.br ? props.br : '5px')};
+  transition: ${(props) =>
+    props.transition ? props.transition : '0.1s opacity ease-in'};
+
+  &:not(:last-of-type) {
+    margin-right: 10px;
+  }
+
+  &:hover {
+    opacity: 0.5;
+  }
+
+  &:active {
+    opacity: 0.75;
+    transition: none;
+  }
 `;

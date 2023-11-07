@@ -7,7 +7,12 @@ import { faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { closeCart, selectUser, showSignup } from '../../app/slice';
 import Cartitem from './CartItem';
-import { Cart } from '../product/Product';
+import {
+  Cart as ICart,
+  ProductList,
+  ProductSize,
+  useGetCartQuery,
+} from '../../app/apiSlice';
 
 const CartBox = styled.section`
   position: fixed;
@@ -116,25 +121,63 @@ const CartFooter = styled(Box)`
   border-top: 1px solid #000;
 `;
 
+export const createCartObject = (
+  product: ProductList,
+  size: Pick<ProductSize, 'sizeId' | 'size'>,
+  quantity: ProductSize['quantity']
+): ICart => {
+  return {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    sizeId: size.sizeId,
+    size: size.size,
+    quantity: quantity,
+  };
+};
+
 const Cart = () => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-  const [carts, setCarts] = useState<Cart[]>([]);
+  const [carts, setCarts] = useState<ICart[]>([]);
   const [subtotal, setSubtotal] = useState(0);
+
+  const { data: getCartItems, isSuccess } = useGetCartQuery(
+    user?.id as number,
+    {
+      skip: !user,
+    }
+  );
 
   useLayoutEffect(() => {
     if (!user) {
       const local = localStorage.getItem('cart');
-      let items: Cart[] = local ? JSON.parse(local) : [];
+      let items: ICart[] = local ? JSON.parse(local) : [];
       setCarts(items);
+      return;
     }
-  }, [user]);
+
+    if (isSuccess) {
+      setCarts(
+        getCartItems.data.map((v) => ({
+          id: v.id,
+          name: v.name,
+          image: v.image,
+          price: v.price,
+          sizeId: v.sizeId,
+          size: v.size,
+          quantity: v.quantity,
+        }))
+      );
+    }
+  }, [user, isSuccess]);
 
   useLayoutEffect(() => {
     if (carts.length !== 0) {
       let sum = 0;
-      carts.forEach((cart) => (sum += cart.price * cart.count));
+      carts.forEach((cart) => (sum += cart.price * cart.quantity));
       setSubtotal(sum);
     }
   }, [carts]);
@@ -170,7 +213,11 @@ const Cart = () => {
                 </Box>
                 <Box mt="15px" className="items scroll-none">
                   {carts.map((cart) => (
-                    <Cartitem key={cart.id} data={cart} setStatus={setCarts} />
+                    <Cartitem
+                      key={cart.id + cart.sizeId}
+                      data={cart}
+                      setStatus={setCarts}
+                    />
                   ))}
                 </Box>
                 <Box hei="70px">

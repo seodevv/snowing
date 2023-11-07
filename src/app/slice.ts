@@ -15,6 +15,13 @@ export interface commonState {
     price: { flag: boolean; maxPrice: number };
     size: number[];
     sort: number;
+    subjects: string[];
+  };
+  modal: {
+    flag: boolean;
+    message: string;
+    onSubmit: (...args: any[]) => any;
+    args: any[];
   };
 }
 
@@ -48,6 +55,13 @@ export const initialCommonState: commonState = {
     price: { flag: false, maxPrice: 1000000 },
     size: [],
     sort: 0,
+    subjects: [],
+  },
+  modal: {
+    flag: false,
+    message: '',
+    onSubmit: () => {},
+    args: [],
   },
 };
 
@@ -81,7 +95,7 @@ const slice = createSlice({
         ...action.payload,
       };
     },
-    closeFeed: (state, action: {}) => {
+    closeFeed: (state) => {
       bodyScrollDisableHandler(false);
       state.feed = initialCommonState.feed;
     },
@@ -92,23 +106,23 @@ const slice = createSlice({
         email: action.payload,
       };
     },
-    closeNewsletter: (state, action: {}) => {
+    closeNewsletter: (state) => {
       bodyScrollDisableHandler(false);
       state.newsletter = initialCommonState.newsletter;
     },
-    showSignup: (state, action: {}) => {
+    showSignup: (state) => {
       bodyScrollDisableHandler(true);
       state.signup.flag = true;
     },
-    closeSignup: (state, action: {}) => {
+    closeSignup: (state) => {
       bodyScrollDisableHandler(false);
       state.signup = initialCommonState.signup;
     },
-    showCart: (state, action: {}) => {
+    showCart: (state) => {
       bodyScrollDisableHandler(true);
       state.cart = true;
     },
-    closeCart: (state, action: {}) => {
+    closeCart: (state) => {
       bodyScrollDisableHandler(false);
       state.cart = false;
     },
@@ -121,18 +135,40 @@ const slice = createSlice({
           price?: { flag: boolean; maxPrice: number };
           size?: number[];
           sort?: number;
+          subjects?: string[];
         };
       }
     ) => {
-      const { brand, page, price, size, sort } = action.payload;
+      const { brand, page, price, size, sort, subjects } = action.payload;
       state.filter.brand = brand ? brand : state.filter.brand;
       state.filter.page = page ? page : state.filter.page;
       state.filter.price = price ? price : state.filter.price;
       state.filter.size = size ? size : state.filter.size;
       state.filter.sort = typeof sort === 'number' ? sort : state.filter.sort;
+      state.filter.subjects = subjects ? subjects : state.filter.subjects;
     },
-    resetFilter: (state, action: {}) => {
+    resetFilter: (state) => {
       state.filter = initialCommonState.filter;
+    },
+    showModal: (
+      state,
+      action: {
+        payload: {
+          message: commonState['modal']['message'];
+          onSubmit: commonState['modal']['onSubmit'];
+          args: commonState['modal']['args'];
+        };
+      }
+    ) => {
+      bodyScrollDisableHandler(true);
+      state.modal = {
+        flag: true,
+        ...action.payload,
+      };
+    },
+    closeModal: (state) => {
+      bodyScrollDisableHandler(false);
+      state.modal = initialCommonState.modal;
     },
   },
 });
@@ -152,6 +188,8 @@ export const {
   closeCart,
   setFilter,
   resetFilter,
+  showModal,
+  closeModal,
 } = slice.actions;
 export const selectCommon = (state: RootState) => state.common;
 export const selectUser = (state: RootState) => state.common.user;
@@ -168,3 +206,6 @@ export const selectFilterPrice = (state: RootState) =>
   state.common.filter.price;
 export const selectFilterSize = (state: RootState) => state.common.filter.size;
 export const selectFilterSort = (state: RootState) => state.common.filter.sort;
+export const selectFilterSubjects = (state: RootState) =>
+  state.common.filter.subjects;
+export const selectModal = (state: RootState) => state.common.modal;

@@ -68,11 +68,11 @@ const MainPage = (): JSX.Element => {
             </a>
           </StyledBox>
         </Box>
-        <ProductSlider type="new" text="new arrivials" />
-        <ProductBanner type="type" />
-        <ProductSlider type="main" text="jacket new arrivials" />
-        <ProductBanner type="subject" main bg="#828282" />
-        <ProductSlider type="popular" text="most popular" />
+        <ProductSlider order="new" text="new arrivials" />
+        <ProductBanner type="type" open />
+        <ProductSlider order="main" text="jacket new arrivials" />
+        <ProductBanner type="subject" main bg="#828282" open />
+        <ProductSlider order="popular" text="most popular" />
         <ProductSubject />
         <InstaFeeds />
       </Container>

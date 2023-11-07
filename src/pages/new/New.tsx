@@ -8,6 +8,11 @@ import { More } from '../shop/Shop';
 import Spinner from '../../components/Spinner';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectFilterPage, setFilter } from '../../app/slice';
+import {
+  errorProduct,
+  initialProduct,
+  initialProductArray,
+} from '../product/Product';
 
 const NewBox = styled(Container)`
   margin-top: 100px;
@@ -23,19 +28,9 @@ const New = () => {
   const dispatch = useDispatch();
   const page = useSelector(selectFilterPage);
 
-  const [type, setType] = useState('new');
   const [end, setEnd] = useState(false);
   const [products, setProducts] = useState<ProductList[]>(
-    Array(16)
-      .fill(undefined)
-      .map((_, i) => ({
-        id: i,
-        name: 'Loading Product',
-        desc: '',
-        image: 'LOADING.png',
-        price: 999999,
-        size: 'free',
-      }))
+    initialProductArray(16, initialProduct)
   );
 
   const {
@@ -44,7 +39,7 @@ const New = () => {
     isSuccess,
     isFetching,
     isError,
-  } = useGetProductsListQuery({ type, limit: 16 * page });
+  } = useGetProductsListQuery({ order: 'new', limit: 16 * page });
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -52,24 +47,12 @@ const New = () => {
 
   useLayoutEffect(() => {
     if (isSuccess && !isFetching) {
-      setProducts(getList.data); // realState
+      setProducts(getList.data);
       if (page * 16 > getList.data.length) setEnd(true);
     } else if (isError) {
-      setProducts(
-        // errorState
-        Array(16)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Network Error. Please try again',
-            desc: '',
-            image: 'ERROR.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(16, errorProduct));
     }
-  }, [isSuccess, isFetching, isError, type]);
+  }, [isSuccess, isFetching, isError, page]);
 
   return (
     <>

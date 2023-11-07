@@ -3,9 +3,9 @@ import styled from 'styled-components';
 import { FlexBox } from '../../components/Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMinus, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { Cart } from '../product/Product';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../../app/slice';
+import { Cart, usePostCartMutation } from '../../app/apiSlice';
 
 const CartBox = styled(FlexBox)`
   margin-bottom: 15px;
@@ -27,15 +27,21 @@ const CartBox = styled(FlexBox)`
     font-size: 0.9rem;
   }
 
+  .size {
+    margin-top: 3px;
+    font-size: 0.9rem;
+    font-weight: bold;
+  }
+
   .price {
-    margin-top: 5px;
+    margin-top: 3px;
     font-size: 0.9rem;
     font-weight: bold;
   }
 
   .count-box {
-    display: inline-block;
     margin-top: 5px;
+    display: inline-block;
     height: 25px;
     border: 1px solid #000;
 
@@ -80,32 +86,76 @@ interface CartItemProps {
 
 const Cartitem = ({ data, setStatus }: CartItemProps) => {
   const user = useSelector(selectUser);
-  const [count, setCount] = useState(data.count);
+  const [count, setCount] = useState(data.quantity);
+  const [postCart] = usePostCartMutation();
 
-  const changeCountHandler = (type: 'inc' | 'dec') => {
+  const changeCountHandler = async (type: 'inc' | 'dec') => {
     if (!user) {
       const local = localStorage.getItem('cart');
       if (!local) return;
 
       let items: Cart[] = JSON.parse(local);
       const index = items.findIndex(
-        (v) => v.id === data.id && v.size === data.size
+        (v) => v.id === data.id && v.sizeId === data.sizeId
       );
       switch (type) {
         case 'inc':
-          items[index].count++;
+          items[index].quantity++;
           setCount((prev) => prev + 1);
           break;
         case 'dec':
-          if (items[index].count !== 1) {
-            items[index].count--;
+          if (items[index].quantity > 1) {
+            items[index].quantity--;
             setCount((prev) => prev - 1);
           }
           break;
       }
       localStorage.setItem('cart', JSON.stringify(items));
       setStatus(items);
+      return;
     }
+
+    try {
+      switch (type) {
+        case 'inc':
+          setCount((prev) => prev + 1);
+          await postCart({ type: 'increase', items: [data], user: user.id });
+          break;
+        case 'dec':
+          if (count <= 1) return;
+          setCount((prev) => prev - 1);
+          await postCart({ type: 'decrease', items: [data], user: user.id });
+          break;
+      }
+    } catch (error) {}
+  };
+
+  const deleteCartItem = async () => {
+    if (!user) {
+      const local = localStorage.getItem('cart');
+      if (!local) return;
+
+      let items: Cart[] = JSON.parse(local);
+      const index = items.findIndex(
+        (v) => v.id === data.id && v.sizeId === data.sizeId
+      );
+      if (index !== -1) items.splice(index, 1);
+      localStorage.setItem('cart', JSON.stringify(items));
+      setStatus(items);
+      return;
+    }
+
+    try {
+      setStatus((prev) => {
+        const index = prev.findIndex(
+          (v) => v.id === data.id && v.sizeId === data.sizeId
+        );
+        const copy = [...prev];
+        if (index !== -1) copy.splice(index, 1);
+        return copy;
+      });
+      await postCart({ type: 'delete', items: [data], user: user.id });
+    } catch (error) {}
   };
 
   return (
@@ -122,6 +172,7 @@ const Cartitem = ({ data, setStatus }: CartItemProps) => {
         </div>
         <div>
           <span className="name">{data.name}</span>
+          <p className="size">{data.size}</p>
           <p className="price">\{data.price.toLocaleString()}</p>
           <div className="count-box">
             <button
@@ -139,7 +190,7 @@ const Cartitem = ({ data, setStatus }: CartItemProps) => {
             </button>
           </div>
         </div>
-        <div className="delete">
+        <div className="delete" onClick={() => deleteCartItem()}>
           <FontAwesomeIcon icon={faXmark} />
         </div>
       </CartBox>

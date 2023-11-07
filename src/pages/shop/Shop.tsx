@@ -7,6 +7,11 @@ import ProductView from '../main/ProductView';
 import Spinner from '../../components/Spinner';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectFilterPage, selectFilterSort, setFilter } from '../../app/slice';
+import {
+  errorProduct,
+  initialProduct,
+  initialProductArray,
+} from '../product/Product';
 
 const ShopBox = styled(Container)`
   margin-top: 125px;
@@ -52,25 +57,20 @@ export const More = styled(Box)`
   }
 `;
 
-const Shop = () => {
+interface ShopProps {
+  category?: string;
+}
+
+const Shop = ({ category }: ShopProps) => {
   const dispatch = useDispatch();
   const page = useSelector(selectFilterPage);
   const sort = useSelector(selectFilterSort);
 
-  const [type, setType] = useState('new');
+  const [order, setOrder] = useState('new');
   const [pageAction, setPageAction] = useState(false);
   const [end, setEnd] = useState(false);
   const [products, setProducts] = useState<ProductList[]>(
-    Array(16)
-      .fill(undefined)
-      .map((_, i) => ({
-        id: i,
-        name: 'Loading Product',
-        desc: '',
-        image: 'LOADING.png',
-        price: 999999,
-        size: 'free',
-      }))
+    initialProductArray(16, initialProduct)
   );
 
   const {
@@ -79,7 +79,7 @@ const Shop = () => {
     isSuccess,
     isFetching,
     isError,
-  } = useGetProductsListQuery({ type, limit: 16 * page });
+  } = useGetProductsListQuery({ order, limit: 16 * page, category });
 
   const productLoadMore = () => {
     dispatch(setFilter({ page: page + 1 }));
@@ -93,60 +93,37 @@ const Shop = () => {
   useLayoutEffect(() => {
     switch (sort) {
       case 0:
-        setType('new');
+        setOrder('new');
         break;
       case 1:
-        setType('popular');
+        setOrder('popular');
         break;
       case 2:
-        setType('priceAsc');
+        setOrder('priceAsc');
         break;
       case 3:
-        setType('priceDesc');
+        setOrder('priceDesc');
         break;
       case 4:
-        setType('nameAsc');
+        setOrder('nameAsc');
         break;
       case 5:
-        setType('nameDesc');
+        setOrder('nameDesc');
         break;
     }
   }, [sort]);
 
   useLayoutEffect(() => {
     if (isFetching && !pageAction) {
-      setProducts(
-        Array(16)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Loading Product',
-            desc: '',
-            image: 'LOADING.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(16, initialProduct));
     } else if (isSuccess && !isFetching) {
       setProducts(getList.data); // realState
       setPageAction(false);
       if (page * 16 > getList.data.length) setEnd(true);
     } else if (isError) {
-      setProducts(
-        // errorState
-        Array(16)
-          .fill(undefined)
-          .map((_, i) => ({
-            id: i,
-            name: 'Network Error. Please try again',
-            desc: '',
-            image: 'ERROR.png',
-            price: 999999,
-            size: 'free',
-          }))
-      );
+      setProducts(initialProductArray(16, errorProduct));
     }
-  }, [isSuccess, isFetching, isError, type]);
+  }, [isSuccess, isFetching, isError, order, page]);
 
   return (
     <>

@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useState } from 'react';
 import { Box, FlexBox } from '../../components/Styled';
 import styled from 'styled-components';
 import { ProductSubject, useGetProductSubjectQuery } from '../../app/apiSlice';
+import { useNavigate } from 'react-router-dom';
 
 const SubjectBox = styled(FlexBox)`
   flex-flow: row wrap;
@@ -19,6 +20,7 @@ const SubjectBox = styled(FlexBox)`
       rgba(0, 42, 54, 0.2) 15px 15px, rgba(0, 42, 54, 0.1) 20px 20px,
       rgba(0, 42, 54, 0.05) 25px 25px;
     transition: 0.3s all ease-in;
+    cursor: pointer;
 
     &:hover {
       box-shadow: rgba(0, 42, 54, 0.4) 5px -5px, rgba(0, 42, 54, 0.3) 10px -10px,
@@ -56,7 +58,6 @@ const SubjectBox = styled(FlexBox)`
     text-align: center;
     text-shadow: 0 0 5px #000, 0 0 10px #000, 0 0 15px #000;
     transform: translateY(-50%);
-    cursor: pointer;
     transition: 0.3s all ease-in;
   }
 
@@ -74,6 +75,8 @@ const SubjectBox = styled(FlexBox)`
 `;
 
 const ProductSubject = (): JSX.Element => {
+  const navigator = useNavigate();
+
   const {
     data: getSubjects,
     isLoading,
@@ -85,6 +88,8 @@ const ProductSubject = (): JSX.Element => {
       .fill(undefined)
       .map((_, i) => ({
         id: i,
+        category: '',
+        type: '',
         subject: 'Loading Subject',
         image: 'LOADING.png',
         show_main: false,
@@ -101,6 +106,8 @@ const ProductSubject = (): JSX.Element => {
           .fill(undefined)
           .map((_, i) => ({
             id: i,
+            category: '',
+            type: '',
             subject: 'Network Error. Please try again',
             image: 'ERROR.png',
             show_main: false,
@@ -108,12 +115,21 @@ const ProductSubject = (): JSX.Element => {
       );
     }
   }, [isSuccess, isError]);
+
   return (
     <>
       <Box>
         <SubjectBox>
           {items.map((item) => (
-            <div key={item.id} className="item">
+            <div
+              key={item.id}
+              className="item"
+              onClick={() => {
+                navigator(
+                  `/${item.category.toLowerCase()}/${item.type.toLowerCase()}/${item.subject.toLowerCase()}`
+                );
+              }}
+            >
               <img
                 className={`item-bg ${isLoading && 'loading'}`}
                 src={`${process.env.REACT_APP_SERVER_URL}/files/${item.image}`}
