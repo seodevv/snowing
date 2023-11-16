@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const MyProfileBox = styled(Box)`
   padding: 75px 25px;
   flex: 1;
-  max-width: 350px;
+  max-width: 300px;
   background: #000;
 
   .profile-box {
@@ -44,7 +44,7 @@ const MyProfileBox = styled(Box)`
 
     li {
       padding: 6px 12px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #fff;
       letter-spacing: 0.5px;
       list-style: none;

@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import {
   Box,
@@ -9,20 +9,22 @@ import {
   P,
   Span,
 } from '../../components/Styled';
-import { Addresses, useDeleteAddressMutation } from '../../app/apiSlice';
+import { Addresses } from '../../app/apiSlice';
 import PostImage from '../../img/POST.png';
 import StampImage from '../../img/STAMP.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSquareCheck, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import { faPenToSquare, faSquare } from '@fortawesome/free-regular-svg-icons';
-import { useDispatch } from 'react-redux';
-import { showModal } from '../../app/slice';
+import { faSquareCheck } from '@fortawesome/free-solid-svg-icons';
+import { faSquare } from '@fortawesome/free-regular-svg-icons';
 
 const AddressBox = styled(Box)`
-  margin-top: 15px;
+  margin-top: 25px;
   position: relative;
   background: #eee;
   animation: fade-in 0.3s ease-in;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
 `;
 
 const Card = styled(Box)`
@@ -54,6 +56,7 @@ const Card = styled(Box)`
 const DearBox = styled(FlexBox)`
   padding: 15px;
   flex-direction: column;
+  align-items: unset;
   flex: 1;
   border-right: 2px solid #000;
 `;
@@ -61,7 +64,8 @@ const DearBox = styled(FlexBox)`
 const InfoBox = styled(FlexBox)`
   padding: 0 15px;
   flex-direction: column;
-  flex: 1;
+  align-items: unset;
+  flex: 1.618;
 
   .postal-code {
     margin-right: 3px;
@@ -88,75 +92,16 @@ const DefaultBox = styled(Box)`
   left: 20px;
 `;
 
-const DeleteBox = styled(Box)`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  visibility: hidden;
-  opacity: 0;
-  transition: 0.1s all ease-in;
-
-  &:hover {
-    scale: 1.2;
-  }
-
-  &:active {
-    scale: 1.1;
-    transition: none;
-  }
-`;
-
-const EditBox = styled(Box)`
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  visibility: hidden;
-  opacity: 0;
-
-  svg {
-    transition: 0.1s all ease-in;
-  }
-
-  svg:first-of-type {
-    margin-right: 10px;
-  }
-
-  svg:hover {
-    scale: 1.2;
-  }
-
-  svg:active {
-    scale: 1.1;
-    transition: none;
-  }
-`;
-
 interface AddressProps extends GlobalProps {
   item: Addresses;
-  setEdit: Dispatch<SetStateAction<boolean>>;
-  setEditId: Dispatch<SetStateAction<number>>;
 }
 
-const Address = ({
-  item,
-  setEdit,
-  setEditId,
-  wid = '100%',
-  hei,
-}: AddressProps) => {
-  const dispatch = useDispatch();
+const Address = ({ item, wid = '100%', hei }: AddressProps) => {
   const app = process.env.REACT_APP_ID || 'Snowing';
   const postal_code =
     item.postal_code === 0
       ? Array(5).fill('-')
       : [...item.postal_code.toString()];
-
-  const [deleteAddress] = useDeleteAddressMutation();
-  const onDeleteAddress = async (id: number) => {
-    try {
-      await deleteAddress(id);
-    } catch (error) {}
-  };
 
   return (
     <>
@@ -167,7 +112,12 @@ const Address = ({
               {item.isDefault ? 'DEFAULT ADDRESS' : 'ADDRESS'}
             </H1>
           </Box>
-          <FlexBox ma="15px" flexWrap="nowrap" flexGrow={1}>
+          <FlexBox
+            ma="15px"
+            flexWrap="nowrap"
+            flexGrow={1}
+            flexAlignItem="unset"
+          >
             <DearBox>
               <H4>
                 <Span mr="10px">From.</Span>
@@ -209,27 +159,6 @@ const Address = ({
               color="#0f6da3"
             />
           </DefaultBox>
-          <EditBox className="edit">
-            <FontAwesomeIcon
-              icon={faTrashCan}
-              onClick={() => {
-                dispatch(
-                  showModal({
-                    message: '해당 주소를 삭제하시겠습니까?',
-                    onSubmit: onDeleteAddress,
-                    args: [item.id],
-                  })
-                );
-              }}
-            />
-            <FontAwesomeIcon
-              icon={faPenToSquare}
-              onClick={() => {
-                setEdit(true);
-                setEditId(item.id);
-              }}
-            />
-          </EditBox>
         </Card>
       </AddressBox>
     </>

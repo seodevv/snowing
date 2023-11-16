@@ -7,11 +7,11 @@ export const baseQuery = fetchBaseQuery({
   credentials: 'include',
 });
 
-export interface index {
+export interface Index {
   id: number;
 }
 
-export interface Banner extends index {
+export interface Banner extends Index {
   category?: string;
   type?: string;
   banner: string;
@@ -19,7 +19,7 @@ export interface Banner extends index {
   show_main?: boolean;
 }
 
-export interface Brands extends index {
+export interface Brands extends Index {
   brand: string;
   logo: string;
   image: string | null;
@@ -27,20 +27,20 @@ export interface Brands extends index {
   desc: string;
 }
 
-export interface Category extends index {
+export interface Category extends Index {
   category: string;
   type: string;
   subject: string;
   order: number;
 }
 
-export interface ProductType extends index {
+export interface ProductType extends Index {
   category: string;
   type: string;
   image: string;
 }
 
-export interface ProductSubject extends index {
+export interface ProductSubject extends Index {
   category: string;
   type: string;
   subject: string;
@@ -48,7 +48,7 @@ export interface ProductSubject extends index {
   image: string;
 }
 
-export interface ProductList extends index {
+export interface ProductList extends Index {
   subjectName?: string;
   brandName?: string;
   brandLogo?: string | null;
@@ -61,26 +61,30 @@ export interface ProductList extends index {
   sell?: number;
 }
 
-export interface ProductNavigator extends index {
+export interface ProductNavigator extends Index {
   category: string;
   type: string;
   subject: string;
   name: string;
 }
 
-export interface ProductSize extends index {
+export interface ProductSize extends Index {
   sizeId: number;
   size: string;
   quantity: number;
 }
 
-export interface ProductDetail extends index {
+export interface ProductDetail extends Index {
   detail: number;
   text: string;
 }
 
 export interface Wish {
   result: boolean;
+}
+
+export interface WishList extends ProductList {
+  userId: number;
 }
 
 export interface Cart
@@ -94,12 +98,12 @@ export interface CartItems extends Cart {
   user: number;
 }
 
-export interface Contact extends index {
+export interface Contact extends Index {
   key: keyof ContactInfo;
   value: string;
 }
 
-export interface Size extends index {
+export interface Size extends Index {
   size: string;
   order?: number;
 }
@@ -135,7 +139,34 @@ export interface Enquire {
   result: boolean;
 }
 
-export interface Addresses extends index {
+export interface Order extends Index {
+  userId: number;
+  statusId: number;
+  status: string;
+  addressId: Addresses['id'];
+  modified: string;
+  ordered: string;
+}
+
+export interface OrderProduct
+  extends Pick<ProductList, 'name' | 'price' | 'image'>,
+    Omit<ProductSize, 'id'> {
+  orderId: Order['id'];
+  productId: ProductList['id'];
+}
+
+export interface OrderDelivery {
+  orderId: Order['id'];
+  companyId: number;
+  companyName: string;
+  companyUrl: string;
+  number: string;
+  statusId: Order['statusId'];
+  status: Order['status'];
+  regist: string;
+}
+
+export interface Addresses extends Index {
   userId: number;
   countryId: number;
   country: string;
@@ -161,6 +192,12 @@ export interface Province extends Country {
   province: string;
 }
 
+export interface Wallets extends Index {
+  userId: number;
+  isDefault: boolean;
+  card_data: string;
+}
+
 export interface Response<T> {
   data: T;
   message: string;
@@ -168,7 +205,15 @@ export interface Response<T> {
 
 export const apiSlice = createApi({
   baseQuery,
-  tagTypes: ['User', 'Product', 'Wish', 'Addresses'],
+  tagTypes: [
+    'User',
+    'Product',
+    'Wish',
+    'Order',
+    'Addresses',
+    'Wallets',
+    'WishList',
+  ],
   endpoints: (builder) => ({
     getUserInfo: builder.query<Response<User>, void>({
       query: () => `/auth/user/login/info`,
@@ -278,7 +323,17 @@ export const apiSlice = createApi({
     getWish: builder.query<Response<Wish>, { userId: number; listId: string }>({
       query: ({ userId, listId }) =>
         `/get/wish?userId=${userId}&listId=${listId}`,
-      providesTags: (r, e, args) => [{ type: 'Wish', id: 'LIST' }],
+      providesTags: (r, e, args) => [
+        { type: 'Wish', id: `${args.userId}-${args.listId}` },
+        { type: 'Wish', id: 'LIST' },
+      ],
+    }),
+    getWishList: builder.query<Response<WishList[]>, number>({
+      query: (userId) => `/get/my/wishlist?userId=${userId}`,
+      providesTags: (r, e, args) => [
+        { type: 'WishList', id: args },
+        { type: 'WishList', id: 'LIST' },
+      ],
     }),
     getCart: builder.query<Response<CartItems[]>, number>({
       query: (user) => `/get/product/cart?user=${user}`,
@@ -311,6 +366,24 @@ export const apiSlice = createApi({
     getSizeGroup: builder.query<Response<Size[]>, void>({
       query: () => `/get/product/size/group`,
     }),
+    getOrder: builder.query<
+      Response<Order[]>,
+      { type: 'list' | 'product'; id?: number; userId?: number }
+    >({
+      query: ({ type, id, userId }) => {
+        let url = `/get/my/order/${type}?`;
+        url += id ? `id=${id}` : '';
+        url += userId ? `userId=${userId}` : '';
+        return url;
+      },
+      providesTags: [{ type: 'Order', id: 'LIST' }],
+    }),
+    getOrderProduct: builder.query<Response<OrderProduct[]>, number>({
+      query: (id) => `/get/my/order/product?id=${id}`,
+    }),
+    gerOrderDelivery: builder.query<Response<OrderDelivery[]>, number>({
+      query: (id) => `/get/my/order/delivery?id=${id}`,
+    }),
     getCountry: builder.query<Response<Country[]>, void>({
       query: () => '/get/my/country',
     }),
@@ -319,16 +392,11 @@ export const apiSlice = createApi({
     }),
     getAddresses: builder.query<Response<Addresses[]>, number>({
       query: (user) => `/get/my/address?user=${user}`,
-      providesTags: (result) =>
-        result
-          ? [
-              ...result.data.map((v) => ({
-                type: 'Addresses' as const,
-                id: v.id,
-              })),
-              { type: 'Addresses', id: 'LIST' },
-            ]
-          : [{ type: 'Addresses', id: 'LIST' }],
+      providesTags: () => [{ type: 'Addresses', id: 'LIST' }],
+    }),
+    getWallets: builder.query<Response<Wallets[]>, number>({
+      query: (user) => `/get/my/wallets?user=${user}`,
+      providesTags: () => [{ type: 'Wallets', id: 'LIST' }],
     }),
     getInstaFeed: builder.query<
       Response<{ feeds: InstaFeeds[]; isEnd: boolean }>,
@@ -368,10 +436,10 @@ export const apiSlice = createApi({
       Response<User>,
       { access_token: string; token_type: string }
     >({
-      query: ({ access_token, token_type }) => ({
+      query: (body) => ({
         url: '/auth/user/login/google',
         method: 'post',
-        body: { access_token, token_type },
+        body,
       }),
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
@@ -418,13 +486,10 @@ export const apiSlice = createApi({
       Response<User>,
       { email: string; password: string }
     >({
-      query: ({ email, password }) => ({
+      query: (body) => ({
         url: '/auth/user/signup/regist',
         method: 'post',
-        body: {
-          email,
-          password,
-        },
+        body,
       }),
       onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
         try {
@@ -440,31 +505,15 @@ export const apiSlice = createApi({
       Response<undefined>,
       { userId: number; listId: string }
     >({
-      query: ({ userId, listId }) => ({
+      query: (body) => ({
         url: '/post/wish',
         method: 'post',
-        body: {
-          userId,
-          listId,
-        },
+        body,
       }),
-      onQueryStarted: async (
-        { userId, listId },
-        { dispatch, queryFulfilled }
-      ) => {
-        try {
-          await queryFulfilled;
-          dispatch(
-            apiSlice.util.updateQueryData(
-              'getWish',
-              { userId, listId },
-              (draft) => {
-                draft.data.result = !draft.data.result;
-              }
-            )
-          );
-        } catch (error) {}
-      },
+      invalidatesTags: (r, e, args) => [
+        { type: 'Wish', id: `${args.userId}-${args.listId}` },
+        { type: 'WishList', id: args.userId },
+      ],
     }),
     postCart: builder.mutation<
       Response<undefined>,
@@ -543,6 +592,28 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: [{ type: 'Addresses', id: 'LIST' }],
     }),
+    postWallets: builder.mutation<
+      Response<void>,
+      Omit<Wallets, 'id'> & { type: 'add' | 'edit' }
+    >({
+      query: (body) => ({
+        url: `/post/my/wallets/${body.type}`,
+        method: 'post',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Wallets', id: 'LIST' }],
+    }),
+    postAccount: builder.mutation<
+      Response<void>,
+      Pick<User, 'id' | 'nick' | 'email' | 'phone'>
+    >({
+      query: (body) => ({
+        url: '/post/my/account',
+        method: 'post',
+        body,
+      }),
+      invalidatesTags: [{ type: 'User', id: 'LIST' }],
+    }),
     deleteAddress: builder.mutation<Response<void>, number>({
       query: (id) => ({
         url: `/post/my/address/delete`,
@@ -552,6 +623,16 @@ export const apiSlice = createApi({
         },
       }),
       invalidatesTags: [{ type: 'Addresses', id: 'LIST' }],
+    }),
+    deleteWallets: builder.mutation<Response<void>, number>({
+      query: (id) => ({
+        url: '/post/my/wallets/delete',
+        method: 'post',
+        body: {
+          id,
+        },
+      }),
+      invalidatesTags: [{ type: 'Wallets', id: 'LIST' }],
     }),
   }),
 });
@@ -568,14 +649,19 @@ export const {
   useGetProductSizeQuery,
   useGetProductDetailQuery,
   useGetWishQuery,
+  useGetWishListQuery,
   useGetCartQuery,
   useGetContactQuery,
   useGetBannerQuery,
   useGetBrandsQuery,
   useGetSizeGroupQuery,
+  useGetOrderQuery,
+  useGetOrderProductQuery,
+  useGerOrderDeliveryQuery,
   useGetCountryQuery,
   useGetProvinceQuery,
   useGetAddressesQuery,
+  useGetWalletsQuery,
   useGetInstaFeedQuery,
   usePostSubscribeMutation,
   usePostLoginAppMutation,
@@ -588,5 +674,8 @@ export const {
   usePostCartMutation,
   usePostEnquireMutation,
   usePostAddressMutation,
+  usePostWalletsMutation,
+  usePostAccountMutation,
   useDeleteAddressMutation,
+  useDeleteWalletsMutation,
 } = apiSlice;

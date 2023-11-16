@@ -22,22 +22,20 @@ import { useSelector } from 'react-redux';
 import { selectUser } from '../../app/slice';
 import Spinner from '../../components/Spinner';
 
-const MyFixedBox = styled(FixedBox)`
+export const MyFixedBox = styled(FixedBox)`
   backdrop-filter: blur(5px);
 `;
 
-const AddBox = styled(Box)`
+export const FormBox = styled(Box)`
   padding: 25px;
   position: relative;
-  width: 90%;
-  max-width: 840px;
   background: #000;
   border-radius: 15px;
   color: #fff;
   box-shadow: 0 0 10px #777;
 
   .header {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     letter-spacing: 1px;
   }
 
@@ -67,7 +65,8 @@ const AddBox = styled(Box)`
     }
   }
 
-  button {
+  .cancle,
+  .submit {
     padding: 15px;
     border: none;
     border-radius: 5px;
@@ -83,7 +82,7 @@ const AddBox = styled(Box)`
     }
   }
 
-  button + button {
+  .button + .button {
     margin-left: 10px;
   }
 
@@ -114,7 +113,7 @@ const AddBox = styled(Box)`
   }
 `;
 
-const LoadingBox = styled(Box)`
+export const LoadingBox = styled(Box)`
   position: absolute;
   top: 0;
   left: 0;
@@ -139,6 +138,14 @@ const errorSelectorData = {
 
 export const WORD_REGEX = /^[0-9a-zA-Z가-힣\s-\.\,]+$/;
 export const POSTAL_CODE_REGEX = /^[0-9]{5}$/;
+
+export const onFocusElement = (ref: RefObject<HTMLInputElement>) => {
+  if (!ref.current) return;
+  const others = document.querySelectorAll('input.error');
+  others.forEach((element) => element.classList.remove('error'));
+  ref.current.classList.add('error');
+  ref.current.focus();
+};
 
 export interface Edit {
   flag: boolean;
@@ -175,12 +182,6 @@ const AddressForm = ({ first, edit, setState }: AddressFormProps) => {
   const cityRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
-
-  const onFocusElement = (ref: RefObject<HTMLInputElement>) => {
-    if (!ref.current) return;
-    ref.current.classList.add('error');
-    ref.current.focus();
-  };
 
   const [postAddress, { isLoading }] = usePostAddressMutation();
   const onSubmitAddress = async () => {
@@ -278,7 +279,7 @@ const AddressForm = ({ first, edit, setState }: AddressFormProps) => {
           if (e.currentTarget === e.target) setState(false);
         }}
       >
-        <AddBox className="add-box">
+        <FormBox className="add-box" wid="90%" maxWid="700px">
           {isLoading && (
             <LoadingBox bg="rgba(0,0,0,0.75)">
               <Spinner color="#fff" size="2xl" />
@@ -387,11 +388,12 @@ const AddressForm = ({ first, edit, setState }: AddressFormProps) => {
             <Input
               ref={phoneRef}
               label="전화번호"
+              limit={13}
               state={phone}
               setState={setPhone}
               require
+              type="phone"
               color="#fff"
-              phone
             />
           </div>
           <Box textAlign="right">
@@ -402,7 +404,7 @@ const AddressForm = ({ first, edit, setState }: AddressFormProps) => {
               {edit ? 'Edit' : 'Save'}
             </button>
           </Box>
-        </AddBox>
+        </FormBox>
       </MyFixedBox>
     </>
   );

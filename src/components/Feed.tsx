@@ -190,6 +190,21 @@ const CloseFeed = styled(FontAwesomeIcon)`
   }
 `;
 
+export const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
 interface FeedProps {
   feed: typeof initialCommonState.feed;
 }
@@ -197,22 +212,7 @@ interface FeedProps {
 const Feed = ({ feed }: FeedProps) => {
   const dispatch = useDispatch();
   const date = new Date(feed.timestamp);
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
   const captions = feed.caption.split(/\r\n|\r|\n/);
-  console.log(feed, date, captions);
 
   useLayoutEffect(() => {
     const closeEvent = (e: KeyboardEvent) => {
@@ -235,7 +235,7 @@ const Feed = ({ feed }: FeedProps) => {
           }
         }}
       >
-        <FlexBox bg="#000" wid="75%" hei="50%">
+        <FlexBox bg="#000" wid="75%" hei="50%" flexAlignItem="unset">
           <FeedBox>
             {(feed.media_type === 'IMAGE' ||
               feed.media_type === 'CAROUSEL_ALBUM') && (
@@ -268,7 +268,7 @@ const Feed = ({ feed }: FeedProps) => {
                   {feed.username}
                 </p>
                 <span className="date">
-                  {months[date.getMonth()]} {date.getDate()},{' '}
+                  {MONTHS[date.getMonth()]} {date.getDate()},{' '}
                   {date.getFullYear()}
                 </span>
               </div>
@@ -293,7 +293,7 @@ const Feed = ({ feed }: FeedProps) => {
                 </span>
               ))}
               <span className="date">
-                {months[date.getMonth()]} {date.getDate()}, {date.getFullYear()}
+                {MONTHS[date.getMonth()]} {date.getDate()}, {date.getFullYear()}
               </span>
             </div>
             <div className="reaction">

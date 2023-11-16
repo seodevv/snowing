@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { InstaFeeds, User } from './apiSlice';
+import { InstaFeeds, User, Wish } from './apiSlice';
 import { RootState } from './store';
 
 export interface commonState {
@@ -16,6 +16,11 @@ export interface commonState {
     size: number[];
     sort: number;
     subjects: string[];
+  };
+  productPopup: {
+    flag: boolean;
+    id: number;
+    wish: boolean;
   };
   modal: {
     flag: boolean;
@@ -57,6 +62,11 @@ export const initialCommonState: commonState = {
     sort: 0,
     subjects: [],
   },
+  productPopup: {
+    flag: false,
+    id: -1,
+    wish: false,
+  },
   modal: {
     flag: false,
     message: '',
@@ -67,6 +77,7 @@ export const initialCommonState: commonState = {
 
 export const bodyScrollDisableHandler = (type: boolean) => {
   const body = document.querySelector('body') as HTMLBodyElement;
+  if (!body) return;
   if (type) {
     body.style.overflow = 'hidden';
   } else {
@@ -150,6 +161,21 @@ const slice = createSlice({
     resetFilter: (state) => {
       state.filter = initialCommonState.filter;
     },
+    showProductPopup: (
+      state,
+      action: { payload: { id: number; wish?: boolean } }
+    ) => {
+      bodyScrollDisableHandler(true);
+      state.productPopup = {
+        flag: true,
+        id: action.payload.id,
+        wish: action.payload.wish ? action.payload.wish : false,
+      };
+    },
+    closeProductPopup: (state) => {
+      bodyScrollDisableHandler(false);
+      state.productPopup = initialCommonState.productPopup;
+    },
     showModal: (
       state,
       action: {
@@ -188,6 +214,8 @@ export const {
   closeCart,
   setFilter,
   resetFilter,
+  showProductPopup,
+  closeProductPopup,
   showModal,
   closeModal,
 } = slice.actions;
@@ -208,4 +236,6 @@ export const selectFilterSize = (state: RootState) => state.common.filter.size;
 export const selectFilterSort = (state: RootState) => state.common.filter.sort;
 export const selectFilterSubjects = (state: RootState) =>
   state.common.filter.subjects;
+export const selectProductPopup = (state: RootState) =>
+  state.common.productPopup;
 export const selectModal = (state: RootState) => state.common.modal;

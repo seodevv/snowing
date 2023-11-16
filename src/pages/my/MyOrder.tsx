@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
-import { Box } from '../../components/Styled';
+import React, { useLayoutEffect, useState } from 'react';
+import { Box, FlexBox } from '../../components/Styled';
 import styled from 'styled-components';
 import Order from '../../components/Order';
 import MyEmpty from './MyEmpty';
+import { Order as IOrder, useGetOrderQuery } from '../../app/apiSlice';
+import { useSelector } from 'react-redux';
+import { selectUser } from '../../app/slice';
+import Spinner from '../../components/Spinner';
+import OrderDetail from './OrderDetail';
 
 const MyOrderBox = styled(Box)`
+  position: relative;
   display: flex;
   flex-flow: row wrap;
   width: 100%;
+  max-height: 800px;
   animation: fade-in 0.3s ease-in;
+  overflow-y: scroll;
 
   .link {
     margin: 25px 0;
@@ -26,18 +34,65 @@ const MyOrderBox = styled(Box)`
       opacity: 0.75;
     }
   }
+
+  .visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0%);
+  }
 `;
 
+export interface Detail {
+  flag: boolean;
+  orderId: number;
+  modified: Date;
+}
+
+export const initialDetail = {
+  flag: false,
+  orderId: -1,
+  modified: new Date(),
+};
+
 const MyOrder = () => {
-  const [orders, setOrders] = useState([
-    100000000, 100000001, 100000002, 100000003, 100000004,
-  ]);
+  const user = useSelector(selectUser);
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [detail, setDetail] = useState<Detail>(initialDetail);
+
+  const {
+    data: getOrder,
+    isLoading,
+    isSuccess,
+    isFetching,
+  } = useGetOrderQuery(
+    { type: 'list', userId: user ? user.id : -1 },
+    { skip: !user }
+  );
+
+  useLayoutEffect(() => {
+    if (isSuccess && !isFetching) {
+      setOrders(getOrder.data);
+    }
+  }, [isSuccess, isFetching]);
 
   return (
     <>
       <MyOrderBox>
+        {(isLoading || isFetching) && (
+          <FlexBox
+            posit="absolute"
+            top="0"
+            left="0"
+            zIndex={1}
+            wid="100%"
+            hei="100%"
+            bg="rgba(0,0,0,0.75)"
+          >
+            <Spinner color="#fff" size="2xl" />
+          </FlexBox>
+        )}
         {orders.map((v) => (
-          <Order key={v} orderId={v} />
+          <Order key={v.id} item={v} setState={setDetail} />
         ))}
         {orders.length === 0 && (
           <MyEmpty
@@ -46,6 +101,7 @@ const MyOrder = () => {
             hei="500px"
           />
         )}
+        <OrderDetail state={detail} setState={setDetail} />
       </MyOrderBox>
     </>
   );

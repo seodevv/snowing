@@ -108,7 +108,7 @@ const ProductSlider = ({
       <Box pa={pa} bg={bg}>
         <Header text={text} />
         <FlexBox wid="100%" flexDir="row" flexWrap="nowrap" overflow="hidden">
-          <Items>
+          <Items flexJustCon="flex-start">
             {products.map((item) => (
               <ProductView
                 key={item.id}

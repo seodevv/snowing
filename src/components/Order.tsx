@@ -1,12 +1,25 @@
-import React from 'react';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import styled from 'styled-components';
 import { Box } from './Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
+import {
+  Order as IOrder,
+  OrderProduct,
+  useGetOrderProductQuery,
+} from '../app/apiSlice';
+import { MONTHS } from './Feed';
+import { useNavigate } from 'react-router-dom';
+import { Detail } from '../pages/my/MyOrder';
 
 const OrderBox = styled(Box)`
-  margin: 15px;
-  width: calc(50% - 30px);
+  margin: 10px;
+  width: calc(50% - 20px);
   min-width: 250px;
   border-radius: 15px;
   overflow: hidden;
@@ -19,6 +32,17 @@ const OrderBox = styled(Box)`
     align-items: flex-start;
     background: rgba(0, 0, 0, 0.75);
     color: #fff;
+    transition: 0.1s all ease-in;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    &:active {
+      background: rgba(0, 0, 0, 0.75);
+      transition: none;
+    }
 
     .icon {
       padding: 0 10px;
@@ -88,6 +112,7 @@ const OrderBox = styled(Box)`
 
     .price {
       margin: 15px 0 5px 0;
+      letter-spacing: 1px;
     }
   }
 
@@ -122,38 +147,76 @@ const OrderBox = styled(Box)`
 `;
 
 interface OrderProps {
-  orderId: number;
+  item: IOrder;
+  setState: Dispatch<SetStateAction<Detail>>;
 }
 
-const Order = ({ orderId }: OrderProps) => {
+const Order = ({ item, setState }: OrderProps) => {
+  const modified = new Date(item.modified);
+  const [orderProduct, setOrderProduct] = useState<OrderProduct[]>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  const {
+    data: getOrderProduct,
+    isLoading,
+    isSuccess,
+    isFetching,
+  } = useGetOrderProductQuery(item.id);
+
+  useLayoutEffect(() => {
+    if (isSuccess && !isFetching) {
+      setOrderProduct(getOrderProduct.data);
+      setTotalPrice(
+        getOrderProduct.data.reduce(
+          (acc, cur) => (acc += cur.price * cur.quantity),
+          0
+        )
+      );
+    }
+  }, [isSuccess, isFetching]);
+
   return (
     <OrderBox>
-      <div className="header">
+      <div
+        className="header"
+        onClick={() =>
+          setState({
+            flag: true,
+            orderId: item.id,
+            modified: new Date(item.modified),
+          })
+        }
+      >
         <div className="icon">
           <FontAwesomeIcon icon={faCircleCheck} />
         </div>
         <div className="status">
-          <span>주문 완료</span>
-          <span>Last updated Oct 6</span>
+          <span>{item.status}</span>
+          <span>
+            Last updated {MONTHS[modified.getMonth()].substring(0, 3)}{' '}
+            {modified.getDate()}
+          </span>
         </div>
       </div>
       <div className="product-image">
         <div className="grid">
-          <div>
-            <img src="https://localhost:8080/files/1_JACKET_1.PNG" />
-          </div>
-          <div>
-            <img src="https://localhost:8080/files/2_JACKET_1.PNG" />
-          </div>
-          <div>
-            <img src="https://localhost:8080/files/3_JACKET_1.PNG" />
-          </div>
+          {orderProduct.slice(0, 3).map((p, i) => {
+            const image_array = p.image.split('/');
+            return (
+              <Box key={`${p.orderId}-${p.productId}-${p.sizeId}`}>
+                <img
+                  src={`${process.env.REACT_APP_SERVER_URL}/files/${image_array[0]}`}
+                  alt={image_array[0]}
+                />
+              </Box>
+            );
+          })}
         </div>
       </div>
       <div className="info">
-        <p>3 items</p>
-        <span>주문번호 #{orderId}</span>
-        <p className="price">\139,000</p>
+        <p>{orderProduct.length} items</p>
+        <span>주문번호 #{item.id}</span>
+        <p className="price">\{totalPrice.toLocaleString()}</p>
       </div>
       <div className="buy">
         <button>Buy again</button>

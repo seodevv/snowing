@@ -88,6 +88,20 @@ textarea {
   }
 }
 
+@keyframes slide-left-in {
+  0% {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  100% {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0px);
+  }
+}
+
 @keyframes gradient {
   0% {
     background-position: 0% 50%;

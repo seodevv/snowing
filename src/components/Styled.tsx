@@ -1,5 +1,14 @@
 import styled, { css } from 'styled-components';
 
+type FlexAlign =
+  | 'flex-start'
+  | 'flex-end'
+  | 'center'
+  | 'baseline'
+  | 'space-arround'
+  | 'space-between'
+  | 'unset';
+
 export interface GlobalProps {
   ma?: string;
   mt?: string;
@@ -18,16 +27,13 @@ export interface GlobalProps {
   left?: string;
   zIndex?: number;
   dis?: 'block' | 'inline-block' | 'inline' | 'table' | 'flex' | 'grid';
+  flex?: number;
   flexDir?: 'row' | 'column';
   flexWrap?: 'wrap' | 'nowrap';
-  flexJustCon?:
-    | 'flex-start'
-    | 'flex-end'
-    | 'center'
-    | 'baseline'
-    | 'space-arround'
-    | 'space-between';
-  flexAlignItem?: string;
+  flexJustCon?: FlexAlign;
+  flexJustItem?: FlexAlign;
+  flexAlignCon?: FlexAlign;
+  flexAlignItem?: FlexAlign;
   flexGrow?: number;
   wid?: string;
   minWid?: string;
@@ -35,6 +41,7 @@ export interface GlobalProps {
   hei?: string;
   minHei?: string;
   maxHei?: string;
+  aspectRatio?: string;
   bg?: string;
   bgSize?: string;
   bgPosit?: string;
@@ -67,6 +74,8 @@ export interface GlobalProps {
   overflow?: 'hidden' | 'scroll';
   transform?: string;
   transition?: string;
+  float?: 'left' | 'right' | 'inline-start' | 'inline-end' | 'none';
+  filter?: string;
   cursor?: 'pointer';
 }
 
@@ -88,9 +97,12 @@ const GlobalStyle = css<GlobalProps>`
   left: ${({ left }) => left};
   z-index: ${({ zIndex }) => zIndex};
   display: ${({ dis }) => dis};
+  flex: ${({ flex }) => flex};
   flex-direction: ${({ flexDir }) => flexDir};
   flex-wrap: ${({ flexWrap }) => flexWrap};
   justify-content: ${({ flexJustCon }) => flexJustCon};
+  justify-items: ${({ flexJustItem }) => flexJustItem};
+  align-content: ${({ flexAlignCon }) => flexAlignCon};
   align-items: ${({ flexAlignItem }) => flexAlignItem};
   flex-grow: ${({ flexGrow }) => flexGrow};
   width: ${({ wid }) => wid};
@@ -99,6 +111,7 @@ const GlobalStyle = css<GlobalProps>`
   height: ${({ hei }) => hei};
   min-height: ${({ minHei }) => minHei};
   max-height: ${({ maxHei }) => maxHei};
+  aspect-ratio: ${({ aspectRatio }) => aspectRatio};
   background: ${({ bg }) => bg};
   background-size: ${({ bgSize }) => bgSize};
   background-position: ${({ bgPosit }) => bgPosit};
@@ -131,6 +144,8 @@ const GlobalStyle = css<GlobalProps>`
   overflow: ${({ overflow }) => overflow};
   transform: ${({ transform }) => transform};
   transition: ${({ transition }) => transition};
+  float: ${({ float }) => float};
+  filter: ${({ filter }) => filter};
   cursor: ${({ cursor }) => cursor};
 `;
 
@@ -140,9 +155,29 @@ export const Container = styled.section`
 export const Box = styled.div`
   ${GlobalStyle}
 `;
+export const IBBox = styled(Box)`
+  display: inline-block;
+`;
+export const FlexGrowBox = styled(Box)`
+  flex-grow: 1;
+`;
 export const FlexBox = styled.div`
   ${GlobalStyle}
   display: flex;
+  flex-wrap: ${(props) => (props.flexWrap ? props.flexWrap : 'nowrap')};
+  justify-content: ${(props) =>
+    props.flexJustCon ? props.flexJustCon : 'center'};
+  align-items: ${(props) =>
+    props.flexAlignItem ? props.flexAlignItem : 'center'};
+`;
+export const FlexColumnBox = styled(FlexBox)`
+  ${GlobalStyle}
+  flex-direction: column;
+  flex-wrap: ${(props) => (props.flexWrap ? props.flexWrap : 'nowrap')};
+  justify-content: ${(props) =>
+    props.flexJustCon ? props.flexJustCon : 'center'};
+  align-items: ${(props) =>
+    props.flexAlignItem ? props.flexAlignItem : 'center'};
 `;
 export const GridBox = styled.div`
   ${GlobalStyle}
@@ -152,6 +187,9 @@ export const Img = styled.img`
   ${GlobalStyle}
 `;
 export const Input = styled.input`
+  ${GlobalStyle}
+`;
+export const Label = styled.label`
   ${GlobalStyle}
 `;
 export const H1 = styled.h1`
@@ -178,6 +216,9 @@ export const P = styled.p`
 export const Span = styled.span`
   ${GlobalStyle}
 `;
+export const A = styled.a`
+  ${GlobalStyle}
+`;
 export const Button = styled.button`
   ${GlobalStyle}
   padding: ${(props) => (props.pa ? props.pa : '6px 12px')};
@@ -186,17 +227,22 @@ export const Button = styled.button`
   border-radius: ${(props) => (props.br ? props.br : '5px')};
   transition: ${(props) =>
     props.transition ? props.transition : '0.1s opacity ease-in'};
+  cursor: pointer;
 
   &:not(:last-of-type) {
     margin-right: 10px;
   }
 
-  &:hover {
+  &:hover:enabled {
     opacity: 0.5;
   }
 
-  &:active {
+  &:active:enabled {
     opacity: 0.75;
     transition: none;
+  }
+
+  &:disabled {
+    opacity: 0.3;
   }
 `;

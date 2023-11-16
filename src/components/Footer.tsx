@@ -4,8 +4,8 @@ import { Box, FlexBox } from './Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCcAmex,
+  faCcJcb,
   faCcMastercard,
-  faCcPaypal,
   faCcVisa,
   faInstagram,
   faSquareFacebook,
@@ -243,7 +243,7 @@ const Footer = () => {
             <FontAwesomeIcon icon={faCcVisa} className="icon" />
             <FontAwesomeIcon icon={faCcMastercard} className="icon" />
             <FontAwesomeIcon icon={faCcAmex} className="icon" />
-            <FontAwesomeIcon icon={faCcPaypal} className="icon" />
+            <FontAwesomeIcon icon={faCcJcb} className="icon" />
           </div>
         </FooterContent>
         <Copylight>

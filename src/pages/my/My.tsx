@@ -8,24 +8,29 @@ import { MYMENUS } from '../../navbar/Navbar';
 import MyProfile from './MyProfile';
 import MyOrder from './MyOrder';
 import MyAddresses from './MyAddresses';
+import MyWallets from './MyWallets';
+import MyWishList from './MyWishList';
+import MyAccount from './MyAccount';
 
 const MyBox = styled(Container)`
   margin-top: 125px;
-  animation: fade-in 0.3s ease-in;
+  animation: fade-in 0.5s ease-in;
 `;
 
 const Inner = styled(Box)`
   margin: 25px auto 0 auto;
   display: flex;
   flex-flow: row nowrap;
+  align-items: flex-start;
   width: 90%;
-  max-width: 1280px;
+  max-width: 980px;
 `;
 
 const MyMenu = styled(Box)`
-  padding: 75px 15px 15px 15px;
+  padding: 0 15px 15px 15px;
   flex: 2.5;
-  animation: fade-in 0.3s ease-in;
+  animation: slide-left-in 0.3s ease-in;
+  overflow-x: hidden;
 
   .content {
     padding: 25px;
@@ -44,7 +49,7 @@ const MyMenu = styled(Box)`
 `;
 
 const OutletBox = styled(Box)`
-  margin-top: 50px;
+  margin-top: 25px;
   border-top: 2px solid #999;
   border-bottom: 2px solid #999;
 `;
@@ -84,9 +89,9 @@ const My = () => {
               <OutletBox>
                 {menu === 'order' && <MyOrder />}
                 {menu === 'address' && <MyAddresses />}
-                {menu === 'wallet' && <></>}
-                {menu === 'wishlist' && <></>}
-                {menu === 'account' && <></>}
+                {menu === 'wallet' && <MyWallets />}
+                {menu === 'wishlist' && <MyWishList />}
+                {menu === 'account' && <MyAccount />}
               </OutletBox>
             </div>
           </MyMenu>

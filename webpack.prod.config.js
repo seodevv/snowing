@@ -11,6 +11,7 @@ module.exports = merge(common, {
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',
     filename: 'app.js',
     clean: true,
     //   publicPath: '/',

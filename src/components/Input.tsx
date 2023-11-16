@@ -11,6 +11,7 @@ import styled from 'styled-components';
 import { Box, GlobalProps } from './Styled';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
+import { Input as StyleInput } from './Styled';
 
 const InputBox = styled(Box)`
   position: relative;
@@ -68,40 +69,50 @@ const InputBox = styled(Box)`
 
 interface InputProps extends GlobalProps {
   label?: string;
+  placeHolder?: string;
   state: string;
   setState: Dispatch<SetStateAction<string>>;
   limit?: number;
   regex?: RegExp;
   require?: boolean;
-  phone?: boolean;
+  type?: 'phone' | 'expire';
+  password?: boolean;
 }
 
 const Input = forwardRef(
   (
     {
       label,
+      placeHolder,
       state,
       setState,
       limit,
       regex,
       require = false,
-      phone = false,
+      type,
+      password,
       ma = '15px 0',
+      mt,
+      mr,
+      mb,
+      ml,
       pa,
       dis,
       wid = '100%',
       hei = '50px',
       bg = 'transparent',
       bd = '1px solid #777',
+      bdBottom,
       br = '10px',
       color,
+      letterSpacing,
     }: InputProps,
     ref: ForwardedRef<HTMLInputElement>
   ) => {
     const [active, setActive] = useState(false);
 
     let style: { [key in string]: string } = {};
-    if (active) {
+    if (label && active) {
       style.padding = '25px 30px 7px 15px';
     }
 
@@ -113,41 +124,58 @@ const Input = forwardRef(
       <>
         <InputBox
           ma={ma}
+          mt={mt}
+          mr={mr}
+          mb={mb}
+          ml={ml}
           pa={pa}
           wid={wid}
           hei={hei}
           dis={dis}
           bg={bg}
           bd={bd}
+          bdBottom={bdBottom}
           br={br}
           color={color}
         >
           <label className={`${active && 'visible'}`}>{label}</label>
-          <input
+          <StyleInput
+            type={password ? 'password' : 'text'}
             ref={ref}
-            placeholder={label}
+            placeholder={placeHolder ? placeHolder : label}
             value={state}
             style={style}
+            letterSpacing={letterSpacing}
             onChange={(
               e: ChangeEvent<HTMLInputElement> & {
                 nativeEvent: { inputType: string };
               }
             ) => {
-              if (limit && e.target.value.length > limit) return;
-              if (regex && !regex.test(e.target.value) && e.target.value !== '')
-                return;
+              const value = e.target.value;
+              const empty = value === '';
+              const deleteAction =
+                e.nativeEvent.inputType !== 'deleteContentBackward';
+
+              if (limit && value.length > limit) return;
+              if (regex && !regex.test(value) && !empty) return;
               if (
-                phone &&
-                e.nativeEvent.inputType !== 'deleteContentBackward' &&
-                (/^[0-9]{3}$/.test(e.target.value) ||
-                  /^[0-9]{3}-[0-9]{4}$/.test(e.target.value))
+                type === 'phone' &&
+                deleteAction &&
+                (/^[0-9]{3}$/.test(value) || /^[0-9]{3}-[0-9]{4}$/.test(value))
               ) {
-                return setState(e.target.value + '-');
+                return setState(value + '-');
               }
-              if (e.target.value === '') setActive(false);
+              if (
+                type === 'expire' &&
+                deleteAction &&
+                /^[0-9]{2}$/.test(value)
+              ) {
+                return setState(value + '/');
+              }
+              if (empty) setActive(false);
               else setActive(true);
               e.target.classList.remove('error');
-              setState(e.target.value);
+              setState(value);
             }}
           />
           <div className="error-box"></div>

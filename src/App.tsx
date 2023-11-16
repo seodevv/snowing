@@ -9,6 +9,7 @@ import {
   selectFeed,
   selectModal,
   selectNewsletter,
+  selectProductPopup,
   selectSignup,
   selectUser,
 } from './app/slice';
@@ -31,6 +32,7 @@ import Category from './pages/category/Category';
 import Contact from './pages/contact/Contact';
 import My from './pages/my/My';
 import Modal from './components/Modal';
+import ProductPopup from './components/ProductPopup';
 
 const App = () => {
   const user = useSelector(selectUser);
@@ -38,6 +40,7 @@ const App = () => {
   const signup = useSelector(selectSignup);
   const newsletter = useSelector(selectNewsletter);
   const cart = useSelector(selectCart);
+  const productPopup = useSelector(selectProductPopup);
   const modal = useSelector(selectModal);
   useGetSecretQuery();
   useGetUserInfoQuery();
@@ -80,6 +83,7 @@ const App = () => {
         {newsletter.flag && <Newletter email={newsletter.email} />}
         {cart && <Cart />}
         {signup.flag && <Signup />}
+        {productPopup.flag && <ProductPopup id={productPopup.id} />}
         {modal.flag && (
           <Modal
             message={modal.message}

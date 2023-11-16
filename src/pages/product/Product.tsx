@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectUser, showCart, showSignup } from '../../app/slice';
 import { useParams } from 'react-router-dom';
 import { createCartObject } from '../cart/Cart';
+import ProductInfo from './ProductInfo';
 
 const ProductBox = styled.section`
   margin-top: 150px;
@@ -180,21 +181,14 @@ export const initialProductArray = (
 
 const Product = () => {
   const { id } = useParams();
-  const dispatch = useDispatch();
-  const user = useSelector(selectUser);
-  const [postWish] = usePostWishMutation();
-  const [postCart] = usePostCartMutation();
 
   const [product, setProduct] = useState<ProductList>(initialProduct);
-  const [wish, setWish] = useState<Wish>({ result: false });
   const [size, setSize] = useState<Pick<ProductSize, 'sizeId' | 'size'>>({
     sizeId: -1,
     size: 'select',
   });
   const [quantity, setQuantity] = useState<ProductSize['quantity']>(1);
   const [current, setCurrent] = useState(0);
-  const [readMore, setReadMore] = useState(false);
-  const [sizeError, setSizeError] = useState(false);
 
   const {
     data: getProduct,
@@ -204,53 +198,13 @@ const Product = () => {
     isError: prdErr,
   } = useGetProductsListByIdQuery(id, { skip: !id });
 
-  const {
-    data: getWish,
-    isLoading: wishLoad,
-    isSuccess: wishSuc,
-    isFetching: wishFet,
-    isError: wishErr,
-  } = useGetWishQuery(
-    { userId: user ? user.id : -1, listId: id ? id : '-1' },
-    { skip: !user?.id || !id ? true : false }
-  );
-
-  const addCartHandler = async () => {
-    if (product.id === -1) return;
-    if (size.size === 'select') return setSizeError(true);
-
-    if (!user) {
-      const local = localStorage.getItem('cart');
-      let items: Cart[] = local ? JSON.parse(local) : [];
-      const check = items.findIndex(
-        (v) => v.id === product.id && v.sizeId === size.sizeId
-      );
-      if (check !== -1) {
-        items[check].quantity++;
-      } else {
-        items.push(createCartObject(product, size, quantity));
-      }
-      localStorage.setItem('cart', JSON.stringify(items));
-      dispatch(showCart());
-      return;
-    }
-
-    try {
-      let items: Cart[] = [createCartObject(product, size, quantity)];
-      await postCart({ type: 'add', items, user: user.id });
-      dispatch(showCart());
-    } catch (error) {}
-  };
-
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
   useLayoutEffect(() => {
     setCurrent(0);
-    setReadMore(false);
     setSize({ sizeId: -1, size: 'select' });
-    setSizeError(false);
     setQuantity(1);
   }, [id]);
 
@@ -263,20 +217,6 @@ const Product = () => {
       setProduct(errorProduct);
     }
   }, [prdSuc, prdFet, prdErr, id]);
-
-  useLayoutEffect(() => {
-    if (wishFet) {
-      setWish({
-        result: false,
-      });
-    } else if (wishSuc && !wishFet) {
-      setWish(getWish.data);
-    } else if (wishErr) {
-      setWish({
-        result: false,
-      });
-    }
-  }, [wishSuc, wishFet, wishErr, id]);
 
   return (
     <>
@@ -295,77 +235,16 @@ const Product = () => {
               images={product.image}
               status={current}
             />
-            <div className="info">
-              <div className="brand">
-                {product.brandLogo ? (
-                  <img
-                    src={`${process.env.REACT_APP_SERVER_URL}/files/${product.brandLogo}`}
-                    alt={product.brandLogo}
-                  />
-                ) : (
-                  <span>
-                    {product.brandName?.replace(/^[a-z]/, (v) =>
-                      v.toUpperCase()
-                    )}
-                  </span>
-                )}
-              </div>
-              <h1 className="name">{product.name}</h1>
-              <p className="price">\{product.price.toLocaleString()}</p>
-              <p className="installment">
-                or 4 interest-free payments of \
-                {(product.price / 4).toLocaleString()} with Payment
-              </p>
-              <ProductDescription
-                id={id}
-                desc={product.desc}
-                status={readMore}
-              />
-              <div
-                className="read-more"
-                onClick={() => {
-                  setReadMore((prev) => !prev);
-                }}
-              >
-                <span>{readMore ? 'Less' : 'Read more'}</span>
-              </div>
-              <Size
-                id={id}
-                status={size}
-                setStatus={setSize}
-                error={sizeError}
-                setError={setSizeError}
-              />
-              <Quantity
-                text="quantity"
-                status={quantity}
-                setStatus={setQuantity}
-              />
-              <div className="actions">
-                <button className="cart" onClick={() => addCartHandler()}>
-                  Add to Cart
-                </button>
-                <div
-                  className="wish"
-                  onClick={async () => {
-                    if (!user) {
-                      dispatch(showSignup());
-                    } else if (id) {
-                      try {
-                        await postWish({ userId: user.id, listId: id });
-                      } catch (error) {
-                        console.error(error);
-                      }
-                    }
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={wish.result ? heartB : heartA}
-                    size="lg"
-                  />
-                </div>
-              </div>
-            </div>
+            <ProductInfo
+              product={product}
+              installment
+              description
+              wish
+              size={size}
+              setSize={setSize}
+              quantity={quantity}
+              setQuantity={setQuantity}
+            />
           </ProductContent>
         </Box>
       </ProductBox>

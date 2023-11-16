@@ -153,7 +153,7 @@ const Category = ({ category }: ClothingProps) => {
             name={subject ? subject : type}
             height="450px"
           />
-          <Inner>
+          <Inner flexAlignItem="flex-start">
             {!subject && (
               <div className="filter">
                 <div className="title">
